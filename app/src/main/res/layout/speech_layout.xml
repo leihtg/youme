@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TableRow>
+
+            <CheckBox
+                android:id="@+id/rCheckbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="边写边读" />
+
+            <RadioGroup
+                android:id="@+id/languageSelect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/china"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="中文" />
+
+                <RadioButton
+                    android:id="@+id/english"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="英文" />
+            </RadioGroup>
+
+        </TableRow>
+
+        <TableRow>
+
+            <Button
+                android:id="@+id/rbutton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="朗读" />
+
+            <Button
+                android:id="@+id/sbutton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="保存" />
+
+        </TableRow>
+    </TableLayout>
+
+    <EditText
+        android:id="@+id/edittext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/showText"
+        android:scrollbars="vertical"
+        android:singleLine="false"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+</LinearLayout>

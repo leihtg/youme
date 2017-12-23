@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:text="手  机  号:" />
+
+            <EditText
+                android:id="@+id/yd_phone"
+                android:width="250dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="请输入手机号"
+                android:inputType="phone" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="fill_horizontal"
+                android:text="服务密码:" />
+
+            <EditText
+                android:id="@+id/yd_pwd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入服务密码"
+                android:inputType="number" />
+        </TableRow>
+
+        <TableRow>
+            <Button
+                android:id="@+id/yd_searchBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="查询"/>
+        </TableRow>
+    </TableLayout>
+</LinearLayout>
