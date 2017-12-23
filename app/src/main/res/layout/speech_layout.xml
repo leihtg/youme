@@ -62,10 +62,10 @@
 
     <TextView
         android:id="@+id/showText"
-        android:scrollbars="vertical"
-        android:singleLine="false"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        android:singleLine="false" />
 
 
 </LinearLayout>

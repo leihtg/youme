@@ -24,6 +24,8 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.youme.R;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;

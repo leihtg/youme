@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.youme.R;
+
 /**
  * Created by Thinkpad on 2017/2/4.
  */

@@ -1,4 +1,4 @@
-package com.leihtg.youme;
+package com.youme.activity;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -8,6 +8,11 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TabHost;
 import android.widget.TextView;
+
+import com.leihtg.youme.FirstFragment;
+import com.leihtg.youme.SecondFragment;
+import com.leihtg.youme.SpeechFragment;
+import com.youme.R;
 
 public class MainActivity extends FragmentActivity {
     private FragmentTabHost tabHost;
@@ -34,7 +39,6 @@ public class MainActivity extends FragmentActivity {
         for (int i = 0; i < count; i++) {
             TabHost.TabSpec t1 = tabHost.newTabSpec(btnName[i]).setIndicator(getTabItemView(i));
             tabHost.addTab(t1, frags[i], null);
-            tabHost.getTabWidget().getChildAt(i).setBackgroundResource(R.drawable.selector_tab_background);
         }
     }
 

@@ -9,7 +9,6 @@
         android:layout_height="match_parent">
 
         <TableRow>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -18,15 +17,14 @@
 
             <EditText
                 android:id="@+id/yd_phone"
-                android:width="250dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:width="250dp"
                 android:hint="请输入手机号"
                 android:inputType="phone" />
         </TableRow>
 
         <TableRow>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -46,7 +44,7 @@
                 android:id="@+id/yd_searchBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="查询"/>
+                android:text="查询" />
         </TableRow>
     </TableLayout>
 </LinearLayout>
