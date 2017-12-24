@@ -12,4 +12,5 @@
     <!--红色-->
     <color name="theme_blue">#3B9DE8</color>
     <!--蓝色-->
+    <color name="white">#ffffff</color>
 </resources>

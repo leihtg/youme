@@ -5,26 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:background="@color/theme_blue"
-        android:layout_height="100dp">
-
-        <com.youme.view.CircleImageViewCustom
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:src="@drawable/chenp"
-            cir:borderColor="#f0f0f0"
-            cir:borderWidth="1dp"
-            cir:rectRoundRadius="30dp"
-            cir:type="circle" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="尊敬的会员" />
-
-    </LinearLayout>
+    <include layout="@layout/main_header" />
 
     <RelativeLayout
         android:id="@+id/realtabcontent"
