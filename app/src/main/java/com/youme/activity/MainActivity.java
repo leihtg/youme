@@ -37,10 +37,11 @@ public class MainActivity extends FragmentActivity {
 
         int count = frags.length;
         for (int i = 0; i < count; i++) {
-            TabHost.TabSpec t1 = tabHost.newTabSpec(btnName[i]).setIndicator(getTabItemView(i));
+            TabHost.TabSpec t1 = tabHost.newTabSpec(btnName[i]).setIndicator(btnName[i]);
             tabHost.addTab(t1, frags[i], null);
         }
     }
+
 
     private View getTabItemView(int index) {
         View view = mInflater.inflate(R.layout.tab_item_view, null);
@@ -53,6 +54,7 @@ public class MainActivity extends FragmentActivity {
 
         return view;
     }
+
 }
 
 

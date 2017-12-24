@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#292929</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#000000</color>
+    <!--主题基础颜色-->
+    <color name="theme_gray">#666666</color>
+    <!--灰色-->
+    <color name="theme_black">#292929</color>
+    <!--黑色-->
+    <color name="theme_red">#FF4236</color>
+    <!--红色-->
+    <color name="theme_blue">#3B9DE8</color>
+    <!--蓝色-->
 </resources>
