@@ -8,58 +8,46 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.youme.R;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FirstFragment extends Fragment {
-    private static final String PHONE = "yd";
     private View view;
-    private View.OnClickListener clickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            EditText phone = (EditText) view.findViewById(R.id.yd_phone);
-            EditText pwd = (EditText) view.findViewById(R.id.yd_pwd);
-            Toast.makeText(getActivity(),"手机号："+phone.getText()+",服务密码："+pwd.getText(),Toast.LENGTH_LONG).show();
-        }
-    };
+
+    private String[] names = new String[]{"虎头", "弄玉", "李清照", "李白"};
+    private String[] descs = new String[]{"可爱的小孩", "一个擅长音乐的女孩", "一个擅长文学的女性", "浪漫主义诗人"};
+    private int[] imageIds = new int[]{R.drawable.chenp, R.drawable.lt, R.drawable.cjp, R.mipmap.home_01};
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.first, null);
-        if (savedInstanceState != null) {
-            Object o = savedInstanceState.get(PHONE);
-            if (o != null) {
-                EditText phone = (EditText) view.findViewById(R.id.yd_phone);
-                EditText pwd = (EditText) view.findViewById(R.id.yd_pwd);
-                HashMap<String, String> map = (HashMap<String, String>) o;
-                phone.setText(map.get("phone"));
-                pwd.setText(map.get("pwd"));
-            }
+        List<Map<String, Object>> listItems = new ArrayList<>();
+        for (int i = 0; i < names.length; i++) {
+            Map<String, Object> listItem = new HashMap<>();
+            listItem.put("header", imageIds[i]);
+            listItem.put("personName", names[i]);
+            listItem.put("desc", descs[i]);
+            listItems.add(listItem);
         }
-        Button searchBtn = (Button) view.findViewById(R.id.yd_searchBtn);
-        searchBtn.setOnClickListener(clickListener);
-        return view;
-    }
+        SimpleAdapter simpleAdapter = new SimpleAdapter(view.getContext(), listItems, R.layout.dir_item, new String[]{"personName", "header", "desc"}, new int[]{R.id.name, R.id.header, R.id.desc});
+        ListView listView = (ListView) view.findViewById(R.id.dirList);
+        //为ListView设置Adapter
+        listView.setAdapter(simpleAdapter);
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (view != null) {
-            EditText phone = (EditText) view.findViewById(R.id.yd_phone);
-            EditText pwd = (EditText) view.findViewById(R.id.yd_pwd);
-            HashMap<String, String> map = new HashMap<>();
-            map.put("phone", phone.getText().toString());
-            map.put("pwd", pwd.getText().toString());
-        }
+        return view;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 }
