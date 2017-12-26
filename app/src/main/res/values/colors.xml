@@ -12,5 +12,10 @@
     <!--红色-->
     <color name="theme_blue">#3B9DE8</color>
     <!--蓝色-->
+
+
     <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+
+    <color name="priceRedColor">#FF4236</color>
 </resources>

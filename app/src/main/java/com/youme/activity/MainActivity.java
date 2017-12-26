@@ -4,15 +4,12 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTabHost;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ImageView;
 import android.widget.TabHost;
-import android.widget.TextView;
 
-import com.leihtg.youme.FirstFragment;
-import com.leihtg.youme.SecondFragment;
-import com.leihtg.youme.SpeechFragment;
 import com.youme.R;
+import com.youme.fragment.FirstFragment;
+import com.youme.fragment.SecondFragment;
+import com.youme.fragment.SpeechFragment;
 
 public class MainActivity extends FragmentActivity {
     private FragmentTabHost tabHost;
@@ -40,19 +37,6 @@ public class MainActivity extends FragmentActivity {
             TabHost.TabSpec t1 = tabHost.newTabSpec(btnName[i]).setIndicator(btnName[i]);
             tabHost.addTab(t1, frags[i], null);
         }
-    }
-
-
-    private View getTabItemView(int index) {
-        View view = mInflater.inflate(R.layout.tab_item_view, null);
-        ImageView imageView = (ImageView) view.findViewById(R.id.imageview);
-        if (index < imgs.length) {
-            imageView.setImageResource(imgs[index]);
-        }
-        TextView textView = (TextView) view.findViewById(R.id.textview);
-        textView.setText(btnName[index]);
-
-        return view;
     }
 
 }
