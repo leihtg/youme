@@ -78,14 +78,14 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onBackPressed() {
         exit();
-        super.onBackPressed();
     }
 
     boolean isExit = false;
 
     private void exit() {
         if (!isExit) {
-            Toast.makeText(this, "再按一次退出", Toast.LENGTH_LONG).show();
+            isExit = true;
+            Toast.makeText(this, "再按一次退出", Toast.LENGTH_SHORT).show();
             backHandler.sendEmptyMessageDelayed(0, 2000);
         } else {
             finish();
