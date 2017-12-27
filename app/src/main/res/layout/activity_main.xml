@@ -6,11 +6,12 @@
 
     <include layout="@layout/main_header" />
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/realtabcontent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:orientation="vertical" />
 
     <android.support.v4.app.FragmentTabHost
         android:id="@android:id/tabhost"
@@ -41,7 +42,7 @@
             android:id="@+id/more"
             style="@style/tab_rb_style"
             android:drawableTop="@drawable/more"
-            android:text="更多" />
+            android:text="读书" />
 
     </RadioGroup>
 </LinearLayout>

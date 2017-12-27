@@ -1,12 +1,15 @@
 package com.youme.activity;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTabHost;
 import android.view.LayoutInflater;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TabHost;
+import android.widget.Toast;
 
 import com.youme.R;
 import com.youme.fragment.FirstFragment;
@@ -69,6 +72,34 @@ public class MainActivity extends FragmentActivity {
         }
     };
 
+    /**
+     * 重写返回按键事件
+     */
+    @Override
+    public void onBackPressed() {
+        exit();
+        super.onBackPressed();
+    }
+
+    boolean isExit = false;
+
+    private void exit() {
+        if (!isExit) {
+            Toast.makeText(this, "再按一次退出", Toast.LENGTH_LONG).show();
+            backHandler.sendEmptyMessageDelayed(0, 2000);
+        } else {
+            finish();
+            System.exit(0);
+        }
+    }
+
+    Handler backHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            isExit = false;
+        }
+    };
 }
 
 

@@ -55,7 +55,6 @@ public class SecondFragment extends Fragment {
         }
     };
 
-
     //为发送通知事件的按钮定义事件处理方法
     private void send() {
         //创建一个启动其他Activity的Intent
