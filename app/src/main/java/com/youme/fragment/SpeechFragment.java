@@ -1,7 +1,6 @@
 package com.youme.fragment;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -10,9 +9,6 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,18 +35,20 @@ public class SpeechFragment extends Fragment {
     private Activity activity;
     private EditText mEditText = null;
     private Button readButton, saveButton = null;
-    private TextView showView = null;
+    private TextView showView;
+    private WebView webView;//web视图
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.speech_layout, null);
         activity = getActivity();
-        speech = new SpeechUtil(activity);
         mEditText = (EditText) view.findViewById(R.id.edittext);
         readButton = (Button) view.findViewById(R.id.rbutton);
         saveButton = (Button) view.findViewById(R.id.sbutton);
         showView = (TextView) view.findViewById(R.id.showText);
+        webView = (WebView) view.findViewById(R.id.webViewId);
+        speech = new SpeechUtil(activity);
 
         return view;
     }
@@ -73,8 +71,6 @@ public class SpeechFragment extends Fragment {
             readButton.setOnClickListener(clickListener);
             //保存按钮监听
             saveButton.setOnClickListener(clickListener);
-            //EditText内容变化监听
-            mEditText.addTextChangedListener(mTextWatcher);
 
             mTextToSpeech = new TextToSpeech(activity, new TextToSpeech.OnInitListener() {
                 @Override
@@ -87,7 +83,6 @@ public class SpeechFragment extends Fragment {
                         }
                     }
                 }
-
             });
         }
 
@@ -95,7 +90,7 @@ public class SpeechFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 switch (v.getId()) {
-                    case R.id.edittext:
+                    case R.id.rbutton:
                         //朗读EditText里的内容
                         String text = mEditText.getText().toString();
                         if (text == null || "".equals(text)) {
@@ -106,6 +101,7 @@ public class SpeechFragment extends Fragment {
                         } else {
                             speek(text);
                         }
+                        break;
                     case R.id.sbutton:
                         //将EditText里的内容保存为语音文件
                         File sdCardDir = Environment.getExternalStorageDirectory();
@@ -131,13 +127,13 @@ public class SpeechFragment extends Fragment {
         final class InJavaScriptLocalObj {
             @JavascriptInterface
             public void showSource(String html) {
-                showView.setText(html);
+//                webView.loadData(html,"text/html","utf-8");
+//                showView.setText(html);
             }
         }
 
 
         public void getContext(String urls) {
-            WebView webView = new WebView(activity);
             webView.getSettings().setJavaScriptEnabled(true);
             webView.addJavascriptInterface(new InJavaScriptLocalObj(), "java_obj");
             webView.setWebViewClient(new WebViewClient() {
@@ -147,9 +143,14 @@ public class SpeechFragment extends Fragment {
                     // 获取页面内容
                     view.loadUrl("javascript:window.java_obj.showSource(document.getElementsByTagName('html')[0].innerHTML);");
                     handler.sendEmptyMessage(QUERY_INTERNET);
-                    super.onPageFinished(view, url);
+//                    super.onPageFinished(view, url);
                 }
 
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    view.loadUrl(url);
+                    return true;
+                }
             });
             webView.loadUrl(urls);
         }
@@ -160,30 +161,6 @@ public class SpeechFragment extends Fragment {
                 mTextToSpeech.shutdown();//关闭TTS
             }
         }
-
-        private TextWatcher mTextWatcher = new TextWatcher() {
-            private int start = 0, num = 0;
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                //如果是边写边读
-                if (s.length() != 0) {
-                    //获得EditText的所有内容
-                    String t = s.toString();
-                    mTextToSpeech.speak(t.substring(start, start + num), TextToSpeech.QUEUE_FLUSH, null, "1");
-                }
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                this.start = start;
-                this.num = count;
-            }
-        };
 
         public void speek(String text) {
             ArrayList<String> list = new ArrayList<>();
@@ -242,7 +219,7 @@ public class SpeechFragment extends Fragment {
             switch (msg.what) {
                 case QUERY_INTERNET:
                     Toast.makeText(activity, "查询完成", Toast.LENGTH_LONG).show();
-                    speech.speek(showView.getText().toString());
+//                    speech.speek(showView.getText().toString());
                 default:
                     super.handleMessage(msg);
             }

@@ -6,15 +6,17 @@
 
     <ImageView
         android:id="@+id/fileIcon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="5dp" />
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="5dp"
+        android:src="@drawable/chenp" />
 
     <LinearLayout
         android:id="@+id/detailId"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/fileIcon"
         android:layout_toRightOf="@id/fileIcon"
         android:orientation="vertical">
 
@@ -22,15 +24,16 @@
             android:id="@+id/fileName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="10dp"
-            android:textColor="#f0f"
-            android:textSize="20dp" />
+            android:gravity="top"
+            android:text="相册"
+            android:textColor="@color/black"
+            android:textSize="18dp" />
 
         <TextView
             android:id="@+id/createTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="10dp"
+            android:text="2015-05-08 11:23:53"
             android:textSize="14dp" />
     </LinearLayout>
 
