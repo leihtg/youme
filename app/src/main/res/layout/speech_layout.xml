@@ -9,36 +9,6 @@
         android:layout_height="wrap_content">
 
         <TableRow>
-
-            <CheckBox
-                android:id="@+id/rCheckbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="边写边读" />
-
-            <RadioGroup
-                android:id="@+id/languageSelect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/china"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="中文" />
-
-                <RadioButton
-                    android:id="@+id/english"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="英文" />
-            </RadioGroup>
-
-        </TableRow>
-
-        <TableRow>
-
             <Button
                 android:id="@+id/rbutton"
                 android:layout_width="wrap_content"
@@ -69,9 +39,5 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </ScrollView>
-    <ImageView
-        android:src="@android:drawable/ic_menu_directions"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 
 </LinearLayout>
