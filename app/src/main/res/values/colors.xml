@@ -20,4 +20,6 @@
     <color name="priceRedColor">#FF4236</color>
     <color name="lightGray">#B5B5B5</color>
     <color name="colorActionBar">#292929</color>
+
+    <color name="transparent">#9000</color>
 </resources>

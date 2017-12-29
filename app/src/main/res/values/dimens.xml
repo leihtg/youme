@@ -6,4 +6,5 @@
 
     <!--主页下面radioButton字体大小-->
     <dimen name="tv_home_rbtn_size">10sp</dimen>
+    <dimen name="actionBarHead">50dp</dimen>
 </resources>

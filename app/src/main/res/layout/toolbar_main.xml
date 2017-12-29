@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.AppBarLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:cir="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@color/colorPrimary">
+        android:background="@color/theme_blue">
+
+        <com.youme.view.CircleImageViewCustom
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="5dp"
+            android:src="@drawable/chenp"
+            cir:borderColor="#f0f0f0"
+            cir:borderWidth="1dp"
+            cir:rectRoundRadius="60dp"
+            cir:type="circle" />
 
         <TextView
             android:id="@+id/txt_toolbar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:text="尊敬的会员"
-            android:textColor="@color/white"
-            android:textSize="16sp" />
+            android:textColor="@color/white" />
 
         <Spinner
             android:id="@+id/spinner_toolbar"

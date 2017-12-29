@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -12,13 +13,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -145,6 +144,16 @@ public class MainActivity extends AppCompatActivity {
         tv_userAccountName.setText("老大");
 
         listView.addHeaderView(headView);
+        List<Map<String, String>> data = new ArrayList<>();
+        Map<String, String> map = new HashMap<>();
+        Map<String, String> map1 = new HashMap<>();
+        map.put("name", "tom");
+        map1.put("name", "kitty");
+        data.add(map);
+        data.add(map1);
+        SimpleAdapter adapter = new SimpleAdapter(this, data, R.layout.spinner_item, new String[]{"name"}, new int[]{R.id.tv_main_spinner_title});
+
+        listView.setAdapter(adapter);
     }
 
     /**
@@ -168,6 +177,9 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         //全部隐藏
         hideFragment(transaction);
+
+        //改变标题
+        actionbarTitleChange(index);
 
         switch (index) {
             case 0:
@@ -200,6 +212,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * 改变actionBar中控件信息
+     *
+     * @param index
+     */
+    private void actionbarTitleChange(int index) {
+        spinner.setVisibility(View.GONE);
+        txt_title.setVisibility(View.VISIBLE);
+
+        switch (index) {
+            case 0://首页
+                txt_title.setText("首页");
+                break;
+            case 1://行情
+                txt_title.setVisibility(View.GONE);
+                spinner.setVisibility(View.VISIBLE);
+                break;
+            case 2://自选
+                txt_title.setText("读取");
+                break;
+        }
+    }
+
+    /**
      * 隐藏碎片
      *
      * @param transaction
@@ -221,7 +256,12 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     public void onBackPressed() {
-        exit();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        }
+//        exit();
+        super.onBackPressed();
     }
 
     boolean isExit = false;

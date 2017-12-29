@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.youme"
-    android:versionCode="@string/versionCode"
-    android:versionName="@string/versionName">
+    package="com.youme">
 
     <!--在SD卡中创建与删除文件权限-->
     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
