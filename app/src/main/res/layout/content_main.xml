@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/realtabcontent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical" />
+
+    <RadioGroup
+        android:id="@+id/main_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/yunPan"
+            style="@style/tab_rb_style"
+            android:drawableTop="@drawable/zhuye"
+            android:text="主页" />
+
+        <RadioButton
+            android:id="@+id/trade"
+            style="@style/tab_rb_style"
+            android:drawableTop="@drawable/trade"
+            android:text="分享" />
+
+        <RadioButton
+            android:id="@+id/more"
+            style="@style/tab_rb_style"
+            android:drawableTop="@drawable/more"
+            android:text="读书" />
+
+    </RadioGroup>
+</LinearLayout>

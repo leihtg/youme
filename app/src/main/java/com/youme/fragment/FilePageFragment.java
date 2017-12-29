@@ -26,7 +26,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FirstFragment extends Fragment {
+/**
+ * 云盘碎片
+ */
+public class FilePageFragment extends Fragment {
     private View view;
     private Context context;
     private ListView listView;//文件列表
