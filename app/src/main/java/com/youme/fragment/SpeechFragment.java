@@ -84,6 +84,25 @@ public class SpeechFragment extends Fragment {
                     }
                 }
             });
+
+            webView.getSettings().setJavaScriptEnabled(true);
+            webView.addJavascriptInterface(new InJavaScriptLocalObj(), "java_obj");
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public void onPageFinished(WebView view, String url) {
+                    // 在结束加载网页时会回调
+                    // 获取页面内容
+                    //view.loadUrl("javascript:window.java_obj.showSource(document.getElementsByTagName('html')[0].innerHTML);");
+                    handler.sendEmptyMessage(QUERY_INTERNET);
+                    super.onPageFinished(view, url);
+                }
+
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    view.loadUrl(url);
+                    return true;
+                }
+            });
         }
 
         View.OnClickListener clickListener = new View.OnClickListener() {
@@ -134,24 +153,6 @@ public class SpeechFragment extends Fragment {
 
 
         public void getContext(String urls) {
-            webView.getSettings().setJavaScriptEnabled(true);
-            webView.addJavascriptInterface(new InJavaScriptLocalObj(), "java_obj");
-            webView.setWebViewClient(new WebViewClient() {
-                @Override
-                public void onPageFinished(WebView view, String url) {
-                    // 在结束加载网页时会回调
-                    // 获取页面内容
-                    view.loadUrl("javascript:window.java_obj.showSource(document.getElementsByTagName('html')[0].innerHTML);");
-                    handler.sendEmptyMessage(QUERY_INTERNET);
-//                    super.onPageFinished(view, url);
-                }
-
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    view.loadUrl(url);
-                    return true;
-                }
-            });
             webView.loadUrl(urls);
         }
 

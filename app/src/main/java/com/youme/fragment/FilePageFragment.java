@@ -7,10 +7,12 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +50,8 @@ public class FilePageFragment extends Fragment {
 
         //加载文件列表
         initDirListView();
+        //初始化菜单
+        initMenuView(view);
 
         view.setFocusable(true);
         view.setFocusableInTouchMode(true);
@@ -93,6 +97,28 @@ public class FilePageFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    //加载弹出框
+    private void initMenuView(View view) {
+        final PopupMenu popupMenu = new PopupMenu(getActivity(), view.findViewById(R.id.fenLei));
+        getActivity().getMenuInflater().inflate(R.menu.file_popup_menu, popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    default:
+                        popupMenu.dismiss();
+                }
+                return true;
+            }
+        });
+        view.findViewById(R.id.fenLei).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupMenu.show();
+            }
+        });
     }
 
     private void initDirListView() {

@@ -138,10 +138,8 @@ public class MainActivity extends AppCompatActivity {
         //头部布局控件绑定的赋值
         View headView = LayoutInflater.from(this).inflate(R.layout.nav_header_main, null);
         TextView tv_userName = (TextView) headView.findViewById(R.id.tv_nav_userName);
-        TextView tv_userAccountName = (TextView) headView.findViewById(R.id.tv_nav_accountName);
 
         tv_userName.setText("齐天大圣");
-        tv_userAccountName.setText("老大");
 
         listView.addHeaderView(headView);
         List<Map<String, String>> data = new ArrayList<>();
