@@ -4,8 +4,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!--<include layout="@layout/main_header" />-->
-
     <include layout="@layout/toolbar_main" />
 
     <include layout="@layout/content_main" />

@@ -215,16 +215,13 @@ public class MainActivity extends AppCompatActivity {
      * @param index
      */
     private void actionbarTitleChange(int index) {
-        spinner.setVisibility(View.GONE);
         txt_title.setVisibility(View.VISIBLE);
-
         switch (index) {
             case 0://首页
                 txt_title.setText("首页");
                 break;
             case 1://行情
-                txt_title.setVisibility(View.GONE);
-                spinner.setVisibility(View.VISIBLE);
+                txt_title.setText("行情");
                 break;
             case 2://自选
                 txt_title.setText("读取");
