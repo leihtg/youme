@@ -26,15 +26,17 @@
             android:layout_height="wrap_content"
             android:gravity="top"
             android:text="相册"
+            android:lines="1"
+            android:ellipsize="end"
             android:textColor="@color/black"
-            android:textSize="18dp" />
+            android:textSize="16dp" />
 
         <TextView
             android:id="@+id/createTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="2015-05-08 11:23:53"
-            android:textSize="14dp" />
+            android:textSize="12dp" />
     </LinearLayout>
 
 </RelativeLayout>

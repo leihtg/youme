@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
                 txt_title.setText("行情");
                 break;
             case 2://自选
-                txt_title.setText("读取");
+                txt_title.setText("读书");
                 break;
         }
     }
