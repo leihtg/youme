@@ -41,11 +41,6 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity
-            android:name=".fragment.Main2Activity"
-            android:label="@string/title_activity_main2"
-            android:theme="@style/AppTheme"></activity>
-
         <receiver android:name=".receiver.SmsReceiver">
             <intent-filter android:priority="1000">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />

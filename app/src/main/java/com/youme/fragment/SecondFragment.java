@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.youme.R;
+import com.youme.activity.NotifyActivity;
 import com.youme.service.MyService;
 
 /**
@@ -108,7 +109,7 @@ public class SecondFragment extends Fragment {
     //为发送通知事件的按钮定义事件处理方法
     private void send() {
         //创建一个启动其他Activity的Intent
-        Intent intent = new Intent(view.getContext(), Main2Activity.class);
+        Intent intent = new Intent(view.getContext(), NotifyActivity.class);
         PendingIntent pi = PendingIntent.getActivity(view.getContext(), 0, intent, 0);
         Notification notify = new Notification.Builder(view.getContext())
                 //设置打开该通知，该通知自动消失

@@ -11,7 +11,7 @@ import android.telephony.SmsMessage;
 import android.widget.Toast;
 
 import com.youme.R;
-import com.youme.fragment.Main2Activity;
+import com.youme.activity.NotifyActivity;
 
 /**
  * Created by Thinkpad on 2018/1/6.
@@ -52,7 +52,7 @@ public class SmsReceiver extends BroadcastReceiver {
     private void send(Context context, String msg) {
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         //创建一个启动其他Activity的Intent
-        Intent intent = new Intent(context, Main2Activity.class);
+        Intent intent = new Intent(context, NotifyActivity.class);
         PendingIntent pi = PendingIntent.getActivity(context, 0, intent, 0);
         Notification notify = new Notification.Builder(context)
                 //设置打开该通知，该通知自动消失
