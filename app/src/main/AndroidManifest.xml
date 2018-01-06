@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- 访问网络权限 -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!--接收短信权限-->
+    <!-- 接收短信权限 -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
     <application
@@ -35,6 +35,7 @@
             android:value="@integer/google_play_services_version" />
 
         <activity android:name=".activity.NotifyActivity" />
+        <activity android:name=".activity.CustomInfoActivity"/>
 
         <service
             android:name=".service.MyService"
@@ -47,6 +48,7 @@
                 <action android:name="TEST_SMS_RECEIVED" />
             </intent-filter>
         </receiver>
+
     </application>
 
 </manifest>
