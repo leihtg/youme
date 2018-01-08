@@ -42,7 +42,7 @@ public class FilePageFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.first, null);
+        view = inflater.inflate(R.layout.yunpan_activity, null);
         context = view.getContext();
         listView = (ListView) view.findViewById(R.id.dirList);
 
