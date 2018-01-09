@@ -17,27 +17,50 @@ import java.util.Arrays;
  */
 public class TCPSingleton {
 
-    private static Handler connHandler;
+    public Handler connHandler;
+
+    public boolean hasConnect = false;
 
     private TCPSingleton() {
         server.start();
+        brocastLocalHost();
     }
 
-    public void brocastLocalHost() throws IOException {
-        InetAddress address = InetAddress.getByName("255.255.255.255");
-        byte[] hostMsg = new byte[]{Contant.HOST_MSG};
-        DatagramPacket packet = new DatagramPacket(hostMsg, hostMsg.length, address, Contant.BROCAST_PORT);
+    private static TCPSingleton singleton = new TCPSingleton();
 
-        DatagramSocket ds = new DatagramSocket();
-        ds.setBroadcast(true);
-        ds.send(packet);
+    public static TCPSingleton getInstance() {
+        return singleton;
+    }
+
+    public void brocastLocalHost() {
+        new Thread() {
+            @Override
+            public void run() {
+                while (!hasConnect) {
+                    try {
+                        InetAddress address = InetAddress.getByName("255.255.255.255");
+                        byte[] hostMsg = new byte[]{Contant.REQ_HOST_MSG};
+                        DatagramPacket packet = new DatagramPacket(hostMsg, hostMsg.length, address, Contant.BROCAST_PORT);
+
+                        DatagramSocket ds = new DatagramSocket();
+                        ds.setBroadcast(true);
+                        ds.send(packet);
+                        Thread.sleep(3000);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.start();
     }
 
     Thread server = new Thread() {
         @Override
         public void run() {
             try {
-                DatagramSocket ds = new DatagramSocket(Contant.CLIENT_PORT);
+                DatagramSocket ds = new DatagramSocket(Contant.BROCAST_PORT);
                 ds.setBroadcast(true);
                 while (true) {
                     byte[] buf = new byte[2048];
@@ -47,12 +70,12 @@ public class TCPSingleton {
                     buf = Arrays.copyOf(packet.getData(), packet.getLength());
                     if (null != buf) {
                         switch (buf[0]) {
-                            case Contant.HOST_MSG:
+                            case Contant.RESP_HOST_MSG:
                                 InetAddress hostAddr = packet.getAddress();
                                 System.out.println("主机地址:" + hostAddr);
                                 if (null != connHandler) {
                                     Message msg = new Message();
-                                    msg.what = Contant.HOST_MSG;
+                                    msg.what = Contant.RESP_HOST_MSG;
                                     msg.obj = hostAddr;
                                     connHandler.sendMessage(msg);
                                 }

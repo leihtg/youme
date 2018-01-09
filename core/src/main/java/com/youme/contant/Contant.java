@@ -9,6 +9,8 @@ public class Contant {
     public static final int BROCAST_PORT = 7777;
     // 手机端端口号
     public static final int CLIENT_PORT = 7788;
-    // 主机地址信息
-    public static final byte HOST_MSG = 0x01;
+    // 请求主机地址信息
+    public static final byte REQ_HOST_MSG = 0x01;
+    //响应
+    public static final byte RESP_HOST_MSG = 0x02;
 }

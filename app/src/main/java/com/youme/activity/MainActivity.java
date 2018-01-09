@@ -25,11 +25,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.youme.R;
+import com.youme.contant.Contant;
 import com.youme.fragment.FilePageFragment;
 import com.youme.fragment.SecondFragment;
 import com.youme.fragment.SpeechFragment;
+import com.youme.server.TCPSingleton;
 import com.youme.view.CircleImageViewCustom;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +70,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
          * 初始化侧边栏
          */
         initListView();
+        TCPSingleton.getInstance().connHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case Contant.RESP_HOST_MSG:
+                        InetAddress addr = (InetAddress) msg.obj;
+                        TCPSingleton.getInstance().hasConnect = true;
+                        Toast.makeText(MainActivity.this, addr.toString(), Toast.LENGTH_LONG).show();
+                }
+                super.handleMessage(msg);
+            }
+        };
     }
 
     /**
