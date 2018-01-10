@@ -72,7 +72,6 @@ public class TCPSingleton {
                         switch (buf[0]) {
                             case Contant.RESP_HOST_MSG:
                                 InetAddress hostAddr = packet.getAddress();
-                                System.out.println("主机地址:" + hostAddr);
                                 if (null != connHandler) {
                                     Message msg = new Message();
                                     msg.what = Contant.RESP_HOST_MSG;
