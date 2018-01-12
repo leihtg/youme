@@ -3,6 +3,7 @@ package com.youme.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
@@ -53,8 +54,14 @@ public class FilePageFragment extends Fragment {
         //添加监听
         pullRefreshView.setPullRefreshListener(new PullRefreshView.PullRefreshListener() {
             @Override
-            public void onRefresh(PullRefreshView view) {
+            public void onRefresh(final PullRefreshView view) {
                 Toast.makeText(context, "刷新成功", Toast.LENGTH_LONG).show();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        view.finishRefresh();
+                    }
+                },3000);
             }
         });
         listView.setOnItemClickListener(clickListener);

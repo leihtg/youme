@@ -4,11 +4,11 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -20,7 +20,8 @@ import android.widget.TextView;
 import com.youme.R;
 import com.youme.util.ScreenUtils;
 
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 整体下拉刷新的布局
@@ -28,6 +29,7 @@ import java.util.List;
  */
 
 public class PullRefreshView extends LinearLayout {
+    private static final String TAG = "PullRefreshView";
     Context context;
     //流动条对象
     Scroller scroller;
@@ -42,11 +44,11 @@ public class PullRefreshView extends LinearLayout {
     TextView tv_refreshState;
     TextView tv_refreshTime;
 
-    int refreshTop = 50;
+    int refreshTop = -60;
 
     //touch事件中的参数
     int lastY;
-    final int MIN_PULL_DISTANCE = 20;
+    final int MIN_PULL_DISTANCE = 10;
     boolean isRefreshing = false;
 
     int listviewPosotion = 2;
@@ -72,12 +74,12 @@ public class PullRefreshView extends LinearLayout {
         tv_refreshState = (TextView) refreshView.findViewById(R.id.tv_pullRefresh_refreshState);
         tv_refreshTime = (TextView) refreshView.findViewById(R.id.tv_pullRefresh_refreshTime);
 
+        //负负得正
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, -refreshTop);
         lp.topMargin = refreshTop;
         lp.gravity = Gravity.CENTER;
         refreshView.setLayoutParams(lp);
 
-//        setBackgroundColor(getResources().getColor(R.color.black));
         addView(refreshView);
     }
 
@@ -87,6 +89,7 @@ public class PullRefreshView extends LinearLayout {
      */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        Log.d(TAG, "onInterceptTouchEvent: " + ev.getAction());
         int touchY = (int) ev.getRawY();
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -98,6 +101,8 @@ public class PullRefreshView extends LinearLayout {
                 if (moveY > MIN_PULL_DISTANCE && canScroll()) {
                     return true;
                 }
+                break;
+            case MotionEvent.ACTION_UP:
                 break;
         }
 
@@ -112,6 +117,7 @@ public class PullRefreshView extends LinearLayout {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        Log.d(TAG, "onTouchEvent: " + event.getAction());
         int touchY = (int) event.getRawY();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -121,6 +127,7 @@ public class PullRefreshView extends LinearLayout {
                 int moveY = touchY - lastY;
                 //改变头标布局参数
                 dropDown(moveY);
+                lastY = touchY;
                 break;
             case MotionEvent.ACTION_UP:
                 fling();
@@ -135,7 +142,7 @@ public class PullRefreshView extends LinearLayout {
      */
     private void fling() {
         LayoutParams lp = (LayoutParams) refreshView.getLayoutParams();
-        if (lp.topMargin > 0) {
+        if (lp.topMargin >= 0) {
             //正在刷新
             refresh();
         } else {
@@ -184,7 +191,7 @@ public class PullRefreshView extends LinearLayout {
 
         tv_refreshState.setText(R.string.pullRefresh_refreshing);
 
-        scroller.startScroll(0, startY, 0, 0);
+        scroller.startScroll(0, startY, 0, 0 - startY);
         invalidate();
 
         //触发自定义接口
@@ -254,8 +261,8 @@ public class PullRefreshView extends LinearLayout {
      * 判断Listview是否已经拉到了最上边
      * 已经拉到了最上边，即未滑动，则不用往下传递事件，返回true
      * 否则，要往下传递事件返回false
-     * <p>
-     * <p>
+     * <p/>
+     * <p/>
      * 此处是为了兼容Listview，和某一种特定的布局
      * 所以getChildAt()里面的参数是2
      * 如果布局结构改变，或者要兼容其他类型的控件，都可以在上面添加改动
@@ -269,13 +276,13 @@ public class PullRefreshView extends LinearLayout {
             if (childView instanceof ListView) {// 此处写可以兼容ListView
                 if (((ListView) childView).getFirstVisiblePosition() == 0) {// 说明Listview已经能看到第一行,但是有可能listview的第一列只显示了一半
                     View firstItemView = ((ListView) childView).getChildAt(0);
-                    if (firstItemView == null || (firstItemView != null && firstItemView.getTop() == 0)) {//第一列全部显示完毕
-                        return true;
-                    }
+                    //第一列全部显示完毕
+                    boolean ret = firstItemView == null || (firstItemView != null && firstItemView.getTop() == 0);
+                    return ret;
                 }
             }
         }
-        return true;
+        return false;
     }
 
     /**
@@ -283,6 +290,24 @@ public class PullRefreshView extends LinearLayout {
      */
     public boolean isRefreshing() {
         return isRefreshing;
+    }
+
+    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    /**
+     * 刷新结束
+     */
+    public void finishRefresh() {
+        isRefreshing = false;
+        tv_refreshState.setText(R.string.pullRefresh_success);
+        image_loadding.setVisibility(View.GONE);
+        tv_refreshTime.setText(sdf.format(new Date()));
+
+        LayoutParams lp = (LayoutParams) this.refreshView.getLayoutParams();
+        int startY = lp.topMargin;
+
+        scroller.startScroll(0, startY, 0, refreshTop);
+        invalidate();
     }
 
     /**
