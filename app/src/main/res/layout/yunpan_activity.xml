@@ -41,9 +41,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <ListView
-        android:id="@+id/dirList"
+    <com.youme.view.PullRefreshView
+        android:id="@+id/pullRefreshView_fileList"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></ListView>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ListView
+            android:id="@+id/dirList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"></ListView>
+
+    </com.youme.view.PullRefreshView>
 
 </LinearLayout>

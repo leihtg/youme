@@ -9,6 +9,8 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -142,8 +144,26 @@ public class PullRefreshView extends LinearLayout {
         }
     }
 
+    //返回原位
     private void recoverView() {
-        
+        isRefreshing = false;
+        LayoutParams lp = (LayoutParams) refreshView.getLayoutParams();
+        int startY = lp.topMargin;
+        scroller.startScroll(0, startY, 0, refreshTop);//调用startScroll将会触发computeScroll函数
+        invalidate();
+    }
+
+    @Override
+    public void computeScroll() {
+        if (scroller.computeScrollOffset()) {//还没有结束
+            int i = scroller.getCurrY();
+            LayoutParams lp = (LayoutParams) refreshView.getLayoutParams();
+            int max = Math.max(i, refreshTop);
+            lp.topMargin = max;
+            refreshView.setLayoutParams(lp);
+            postInvalidate();
+        }
+        super.computeScroll();
     }
 
     /**
@@ -151,7 +171,26 @@ public class PullRefreshView extends LinearLayout {
      */
     private void refresh() {
         isRefreshing = true;
-       
+
+        //将头布局完全展示出来
+        LayoutParams lp = (LayoutParams) refreshView.getLayoutParams();
+        int startY = lp.topMargin;
+
+        image_arrow.setVisibility(GONE);
+        image_loadding.setVisibility(VISIBLE);
+        //添加动态效果
+        Animation ani = AnimationUtils.loadAnimation(context, R.anim.loading_dialog_progressbar);
+        image_loadding.setAnimation(ani);
+
+        tv_refreshState.setText(R.string.pullRefresh_refreshing);
+
+        scroller.startScroll(0, startY, 0, 0);
+        invalidate();
+
+        //触发自定义接口
+        if (null != pullRefreshListener) {
+            pullRefreshListener.onRefresh(this);
+        }
     }
 
     /**
@@ -237,6 +276,29 @@ public class PullRefreshView extends LinearLayout {
             }
         }
         return true;
+    }
+
+    /**
+     * 是否处在正在刷新的状态
+     */
+    public boolean isRefreshing() {
+        return isRefreshing;
+    }
+
+    /**
+     * 直接进入刷新状态
+     */
+    public void startRefresh() {
+        refresh();
+    }
+
+    //设置listView位置
+    public void setListviewPosotion(int listviewPosotion) {
+        this.listviewPosotion = listviewPosotion;
+    }
+
+    public void setPullRefreshListener(PullRefreshListener pullRefreshListener) {
+        this.pullRefreshListener = pullRefreshListener;
     }
 
     /**

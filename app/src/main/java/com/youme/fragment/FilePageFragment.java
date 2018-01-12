@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.youme.R;
+import com.youme.view.PullRefreshView;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,14 +39,24 @@ public class FilePageFragment extends Fragment {
     private File currentParent;//当前文件路径
     private File sdCardDir;//根目录
     private File[] currentFiles;
+    private PullRefreshView pullRefreshView;
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.yunpan_activity, null);
         context = view.getContext();
         listView = (ListView) view.findViewById(R.id.dirList);
+        pullRefreshView = (PullRefreshView) view.findViewById(R.id.pullRefreshView_fileList);
+        pullRefreshView.setListviewPosotion(1);//第一个
 
+        //添加监听
+        pullRefreshView.setPullRefreshListener(new PullRefreshView.PullRefreshListener() {
+            @Override
+            public void onRefresh(PullRefreshView view) {
+                Toast.makeText(context, "刷新成功", Toast.LENGTH_LONG).show();
+            }
+        });
         listView.setOnItemClickListener(clickListener);
 
         //加载文件列表

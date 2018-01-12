@@ -9,5 +9,6 @@
     <string name="title_activity_main2">Main2Activity</string>
     <string name="pullRefresh_pull">下拉可刷新</string>
     <string name="pullRefresh_release">释放立刻刷新</string>
+    <string name="pullRefresh_refreshing">正在刷新...</string>
 
 </resources>
