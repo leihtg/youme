@@ -55,11 +55,11 @@ public class FilePageFragment extends Fragment {
         pullRefreshView.setPullRefreshListener(new PullRefreshView.PullRefreshListener() {
             @Override
             public void onRefresh(final PullRefreshView view) {
-                Toast.makeText(context, "刷新成功", Toast.LENGTH_LONG).show();
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         view.finishRefresh();
+                        Toast.makeText(context, "刷新成功", Toast.LENGTH_LONG).show();
                     }
                 },3000);
             }

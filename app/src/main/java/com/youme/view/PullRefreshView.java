@@ -2,6 +2,7 @@ package com.youme.view;
 
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -18,6 +19,7 @@ import android.widget.Scroller;
 import android.widget.TextView;
 
 import com.youme.R;
+import com.youme.constant.APPFinal;
 import com.youme.util.ScreenUtils;
 
 import java.text.SimpleDateFormat;
@@ -53,6 +55,9 @@ public class PullRefreshView extends LinearLayout {
 
     int listviewPosotion = 2;
 
+    //存储刷新状态
+    SharedPreferences shareState;
+
     public PullRefreshView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.context = context;
@@ -60,6 +65,7 @@ public class PullRefreshView extends LinearLayout {
         // 将下拉刷新的view的margin值转换成px,(主要目的为兼容)
         refreshTop = ScreenUtils.dip2px(context, refreshTop);
 
+        shareState = context.getSharedPreferences(APPFinal.ShAERD_REFRESH, Context.MODE_PRIVATE);
         //初始化布局
         initRefreshView();
     }
@@ -74,6 +80,7 @@ public class PullRefreshView extends LinearLayout {
         tv_refreshState = (TextView) refreshView.findViewById(R.id.tv_pullRefresh_refreshState);
         tv_refreshTime = (TextView) refreshView.findViewById(R.id.tv_pullRefresh_refreshTime);
 
+        tv_refreshTime.setText(shareState.getString("refreshTime", ""));
         //负负得正
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, -refreshTop);
         lp.topMargin = refreshTop;
@@ -301,13 +308,16 @@ public class PullRefreshView extends LinearLayout {
         isRefreshing = false;
         tv_refreshState.setText(R.string.pullRefresh_success);
         image_loadding.setVisibility(View.GONE);
-        tv_refreshTime.setText(sdf.format(new Date()));
+
+        String timeStr = "上次更新时间: " + sdf.format(new Date());
+        shareState.edit().putString("refreshTime", timeStr).commit();
+        tv_refreshTime.setText(timeStr);
 
         LayoutParams lp = (LayoutParams) this.refreshView.getLayoutParams();
         int startY = lp.topMargin;
 
-        scroller.startScroll(0, startY, 0, refreshTop);
         invalidate();
+        scroller.startScroll(0, startY, 0, refreshTop, 1000);
     }
 
     /**

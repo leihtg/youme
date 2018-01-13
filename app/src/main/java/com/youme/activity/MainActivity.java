@@ -29,6 +29,7 @@ import com.youme.contant.Contant;
 import com.youme.fragment.FilePageFragment;
 import com.youme.fragment.SecondFragment;
 import com.youme.fragment.SpeechFragment;
+import com.youme.fragment.StudyFragment;
 import com.youme.server.TCPSingleton;
 import com.youme.view.CircleImageViewCustom;
 
@@ -45,8 +46,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private SecondFragment secondFragment;
     //阅读碎片
     private SpeechFragment speechFragment;
+    //study
+    private StudyFragment studyFragment;
+
     //碎片管理Manager
     private FragmentManager fragmentManager;
+
     //标题栏
     private Toolbar toolbar;
     //标题栏中的标题
@@ -103,6 +108,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         break;
                     case R.id.more:
                         index = 2;
+                        break;
+                    case R.id.study:
+                        index = 3;
                         break;
                     default:
                         return;
@@ -163,6 +171,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             secondFragment = (SecondFragment) fragment;
         } else if (null == speechFragment && fragment instanceof SpeechFragment) {
             speechFragment = (SpeechFragment) fragment;
+        } else if (null == studyFragment && fragment instanceof StudyFragment) {
+            studyFragment = (StudyFragment) fragment;
         }
 
     }
@@ -288,6 +298,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     transaction.show(speechFragment);
                 }
                 break;
+            case 3:
+                if (null == studyFragment) {
+                    studyFragment = new StudyFragment();
+                    transaction.add(R.id.realtabcontent, studyFragment);
+                } else {
+                    transaction.show(studyFragment);
+                }
+                break;
         }
 
         transaction.commit();
@@ -327,6 +345,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         if (speechFragment != null) {
             transaction.hide(speechFragment);
+        }
+        if (studyFragment != null) {
+            transaction.hide(studyFragment);
         }
     }
 

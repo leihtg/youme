@@ -37,6 +37,7 @@
 
         <activity android:name=".activity.NotifyActivity" />
         <activity android:name=".activity.CustomInfoActivity" />
+        <activity android:name=".activity.AboutSoftWareActivity"/>
 
         <service
             android:name=".service.MyService"
@@ -49,7 +50,6 @@
             android:exported="true">
             <intent-filter android:priority="1000">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-                <action android:name="TEST_SMS_RECEIVED" />
             </intent-filter>
         </receiver>
 

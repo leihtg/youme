@@ -24,6 +24,7 @@
                 android:id="@+id/tv_pullRefresh_refreshState"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="start"
                 android:text="@string/pullRefresh_pull"
                 android:textColor="@color/white" />
 
@@ -31,25 +32,28 @@
                 android:id="@+id/tv_pullRefresh_refreshTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="start"
                 android:text="上次刷新时间"
                 android:textColor="@color/white"
-                android:textSize="12dp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <ImageView
             android:id="@+id/img_pullRefresh_arrow"
             android:layout_width="25dp"
             android:layout_height="25dp"
-            android:layout_marginRight="20dip"
-            android:layout_toLeftOf="@id/layout"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="20dip"
+            android:layout_toStartOf="@id/layout"
             android:src="@mipmap/pull_refresh" />
 
         <ImageView
             android:id="@+id/img_pullRefresh_loading"
             android:layout_width="25dp"
             android:layout_height="25dp"
-            android:layout_marginRight="20dip"
-            android:layout_toLeftOf="@id/layout"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="20dip"
+            android:layout_toStartOf="@id/layout"
             android:src="@mipmap/loading"
             android:visibility="gone" />
     </RelativeLayout>

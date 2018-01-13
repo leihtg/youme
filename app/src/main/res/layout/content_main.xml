@@ -36,5 +36,11 @@
             android:drawableTop="@drawable/more"
             android:text="读书" />
 
+        <RadioButton
+            android:id="@+id/study"
+            style="@style/tab_rb_style"
+            android:drawableTop="@drawable/trade"
+            android:text="探索" />
+
     </RadioGroup>
 </LinearLayout>

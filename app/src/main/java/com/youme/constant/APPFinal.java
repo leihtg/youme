@@ -50,9 +50,9 @@ public class APPFinal {
 
 
     /**
-     * SharedPreference的文件名称--储存第一次进入软件
+     * SharedPreference的文件名称--储存刷新状态
      */
-    public static final String ShAERD_FILE_FirstStart = "firstStart";
+    public static final String ShAERD_REFRESH = "refresh_state";
     /**
      * SharedPreference的文件名称--储存用户信息
      */
