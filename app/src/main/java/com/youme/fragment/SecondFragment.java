@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,8 +63,11 @@ public class SecondFragment extends Fragment {
         send.setOnClickListener(listen);
         cancel.setOnClickListener(listen);
         intent = new Intent(getContext(), MyService.class);
+
         return view;
     }
+
+    FragmentPagerAdapter pagerAdapter = null;
 
     ServiceConnection conn = new ServiceConnection() {
         @Override

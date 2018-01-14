@@ -4,12 +4,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <FrameLayout
-        android:id="@+id/realtabcontent"
+    <android.support.v4.view.ViewPager
+        android:id="@+id/mainViewPage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical" />
+        android:layout_weight="1" />
+
+    <!--<FrameLayout-->
+    <!--android:id="@+id/realtabcontent"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="0dp"-->
+    <!--android:layout_weight="1"-->
+    <!--android:orientation="vertical" />-->
 
     <RadioGroup
         android:id="@+id/main_group"
@@ -21,24 +27,32 @@
         <RadioButton
             android:id="@+id/yunPan"
             style="@style/tab_rb_style"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:drawableTop="@drawable/zhuye"
             android:text="主页" />
 
         <RadioButton
             android:id="@+id/trade"
             style="@style/tab_rb_style"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:drawableTop="@drawable/trade"
             android:text="分享" />
 
         <RadioButton
             android:id="@+id/more"
             style="@style/tab_rb_style"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:drawableTop="@drawable/more"
             android:text="读书" />
 
         <RadioButton
             android:id="@+id/study"
             style="@style/tab_rb_style"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:drawableTop="@drawable/trade"
             android:text="探索" />
 

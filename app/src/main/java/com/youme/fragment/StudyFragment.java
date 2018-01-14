@@ -29,7 +29,7 @@ public class StudyFragment extends Fragment {
     //实际的Y轴的位置
     private int centerY = HEIGHT / 2;
     private int cx = X_OFFSET;
-    Timer timer = new Timer();
+    Timer timer;
     TimerTask task = null;
 
 
@@ -42,12 +42,28 @@ public class StudyFragment extends Fragment {
         return view;
     }
 
+    private void stopDraw() {
+        if (task != null) {
+            task.cancel();
+        }
+        if (timer != null) {
+            timer.cancel();
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        stopDraw();
+        super.onStop();
+    }
+
     SurfaceHolder holder;
     Paint paint;
 
     private void useSurfaceView(View view) {
         SurfaceView surface = (SurfaceView) view.findViewById(R.id.show);
         holder = surface.getHolder();
+        timer = new Timer();
         paint = new Paint();
         paint.setColor(Color.RED);
         paint.setStrokeWidth(3);

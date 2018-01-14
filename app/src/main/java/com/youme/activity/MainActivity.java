@@ -7,8 +7,10 @@ import android.os.Message;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -16,7 +18,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SimpleAdapter;
@@ -40,6 +41,9 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    ViewPager viewPager;
+
+    FragmentPagerAdapter pagerAdapter;
     //云盘碎片
     private FilePageFragment filePageFragment;
 
@@ -66,10 +70,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //初始化toolBar
         initToolBar();
 
-        initRadioGroup();
-
         //初始化DrawerLayout
         initDrawerLayout();
+
+        initViewPage();
+
+        initRadioGroup();
 
         /**
          * 初始化侧边栏
@@ -87,6 +93,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 super.handleMessage(msg);
             }
         };
+    }
+
+    private void initViewPage() {
+        viewPager = (ViewPager) findViewById(R.id.mainViewPage);
+        pagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
+            @Override
+            public Fragment getItem(int position) {
+                return selectFragment(position);
+            }
+
+            @Override
+            public int getCount() {
+                return 4;
+            }
+        };
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                setRadioChecked(position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
     }
 
     /**
@@ -115,11 +153,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     default:
                         return;
                 }
-                setTabSelection(index);
+                viewPager.setCurrentItem(index);
             }
         });
         //默认选第一个
-        ((RadioButton) mGroup.getChildAt(0)).setChecked(true);
+        setRadioChecked(0);
+    }
+
+    private void setRadioChecked(int position) {
+        RadioGroup mGroup = (RadioGroup) findViewById(R.id.main_group);
+        RadioButton cutBtn = (RadioButton) mGroup.getChildAt(position);
+        cutBtn.setChecked(true);
+        //改变标题
+        txt_title.setText(cutBtn.getText());
     }
 
     /**
@@ -143,18 +189,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         data.add(map1);
         SimpleAdapter spinnerAdapter = new SimpleAdapter(this, data, R.layout.spinner_item, new String[]{"name"}, new int[]{R.id.tv_main_spinner_title});
         spinner.setAdapter(spinnerAdapter);
-
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
     }
 
     /**
@@ -264,71 +298,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      *
      * @param index
      */
-    private void setTabSelection(int index) {
-        fragmentManager = getSupportFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        //全部隐藏
-        hideFragment(transaction);
-
-        //改变标题
-        actionbarTitleChange(index);
+    private Fragment selectFragment(int index) {
 
         switch (index) {
             case 0:
                 if (null == filePageFragment) {
                     filePageFragment = new FilePageFragment();
-                    transaction.add(R.id.realtabcontent, filePageFragment);
-                } else {
-                    transaction.show(filePageFragment);
                 }
-                break;
+                return filePageFragment;
             case 1:
                 if (null == secondFragment) {
                     secondFragment = new SecondFragment();
-                    transaction.add(R.id.realtabcontent, secondFragment);
-                } else {
-                    transaction.show(secondFragment);
                 }
-                break;
+                return secondFragment;
             case 2:
                 if (null == speechFragment) {
                     speechFragment = new SpeechFragment();
-                    transaction.add(R.id.realtabcontent, speechFragment);
-                } else {
-                    transaction.show(speechFragment);
                 }
-                break;
+                return speechFragment;
             case 3:
                 if (null == studyFragment) {
                     studyFragment = new StudyFragment();
-                    transaction.add(R.id.realtabcontent, studyFragment);
-                } else {
-                    transaction.show(studyFragment);
                 }
-                break;
+                return studyFragment;
         }
 
-        transaction.commit();
-    }
-
-    /**
-     * 改变actionBar中控件信息
-     *
-     * @param index
-     */
-    private void actionbarTitleChange(int index) {
-        txt_title.setVisibility(View.VISIBLE);
-        switch (index) {
-            case 0://首页
-                txt_title.setText("首页");
-                break;
-            case 1://行情
-                txt_title.setText("行情");
-                break;
-            case 2://自选
-                txt_title.setText("读书");
-                break;
-        }
+        return null;
     }
 
     /**

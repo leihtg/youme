@@ -44,8 +44,9 @@ public class FilePageFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.yunpan_activity, null);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        view = LayoutInflater.from(getContext()).inflate(R.layout.yunpan_activity, null);
         context = view.getContext();
         listView = (ListView) view.findViewById(R.id.dirList);
         pullRefreshView = (PullRefreshView) view.findViewById(R.id.pullRefreshView_fileList);
@@ -61,7 +62,7 @@ public class FilePageFragment extends Fragment {
                         view.finishRefresh();
                         Toast.makeText(context, "刷新成功", Toast.LENGTH_LONG).show();
                     }
-                },3000);
+                }, 3000);
             }
         });
         listView.setOnItemClickListener(clickListener);
@@ -87,7 +88,11 @@ public class FilePageFragment extends Fragment {
                 return false;
             }
         });
+    }
 
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return view;
     }
 
@@ -111,11 +116,6 @@ public class FilePageFragment extends Fragment {
 
         }
     };
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     //加载弹出框
     private void initMenuView(View view) {
