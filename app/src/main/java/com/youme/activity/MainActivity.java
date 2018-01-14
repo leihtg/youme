@@ -6,7 +6,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -53,9 +52,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //study
     private StudyFragment studyFragment;
 
-    //碎片管理Manager
-    private FragmentManager fragmentManager;
-
     //标题栏
     private Toolbar toolbar;
     //标题栏中的标题
@@ -88,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     case Contant.RESP_HOST_MSG:
                         InetAddress addr = (InetAddress) msg.obj;
                         TCPSingleton.getInstance().hasConnect = true;
-                        Toast.makeText(MainActivity.this, addr.toString(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "服务器地址:" + addr.toString() + ",连接成功", Toast.LENGTH_LONG).show();
                 }
                 super.handleMessage(msg);
             }

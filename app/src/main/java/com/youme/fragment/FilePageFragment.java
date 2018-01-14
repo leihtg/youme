@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
@@ -16,13 +17,15 @@ import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.youme.R;
+import com.youme.contant.Contant;
+import com.youme.contant.FileModel;
+import com.youme.contant.FileParam;
+import com.youme.server.ClientThread;
 import com.youme.view.PullRefreshView;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,10 +40,13 @@ public class FilePageFragment extends Fragment {
     private View view;
     private Context context;
     private ListView listView;//文件列表
-    private File currentParent;//当前文件路径
-    private File sdCardDir;//根目录
+    private String currentPath = "";//当前文件路径默认为空
     private File[] currentFiles;
     private PullRefreshView pullRefreshView;
+    ClientThread clientThread;
+
+    //向服务器查询数据
+    Message msg;
 
     @Nullable
     @Override
@@ -48,6 +54,7 @@ public class FilePageFragment extends Fragment {
         super.onCreate(savedInstanceState);
         view = LayoutInflater.from(getContext()).inflate(R.layout.yunpan_activity, null);
         context = view.getContext();
+
         listView = (ListView) view.findViewById(R.id.dirList);
         pullRefreshView = (PullRefreshView) view.findViewById(R.id.pullRefreshView_fileList);
         pullRefreshView.setListviewPosotion(1);//第一个
@@ -56,13 +63,16 @@ public class FilePageFragment extends Fragment {
         pullRefreshView.setPullRefreshListener(new PullRefreshView.PullRefreshListener() {
             @Override
             public void onRefresh(final PullRefreshView view) {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        view.finishRefresh();
-                        Toast.makeText(context, "刷新成功", Toast.LENGTH_LONG).show();
-                    }
-                }, 3000);
+                pullRefreshView.finishRefresh();//刷新成功
+                FileParam fp = new FileParam();
+                fp.setMsgType(Contant.FETCH_DIR);
+                fp.setPath(currentPath);
+
+                msg = new Message();
+                msg.obj = fp;
+
+                clientThread = new ClientThread(fileHandler);
+                new Thread(clientThread).start();
             }
         });
         listView.setOnItemClickListener(clickListener);
@@ -78,11 +88,7 @@ public class FilePageFragment extends Fragment {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN) {
-                    if (!sdCardDir.equals(currentParent)) {
-                        currentParent = currentParent.getParentFile();
-                        currentFiles = currentParent.listFiles();
-                        inflateListView(currentFiles);
-                    }
+
                     return true;
                 }
                 return false;
@@ -100,19 +106,6 @@ public class FilePageFragment extends Fragment {
     AdapterView.OnItemClickListener clickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            if (currentFiles[position].isFile()) {
-                return;//是文件不处理
-            }
-            File[] tmp = currentFiles[position].listFiles();
-            if (null == tmp || tmp.length == 0) {
-                Toast.makeText(context, "当前路径不可访问或该路径下没有文件", Toast.LENGTH_LONG).show();
-            } else {
-                currentParent = currentFiles[position];
-                currentFiles = tmp;
-                //再次更新视图
-                inflateListView(currentFiles);
-            }
-
 
         }
     };
@@ -144,13 +137,6 @@ public class FilePageFragment extends Fragment {
             //没有sd卡或没有访问权限
             return;
         }
-        //获取SD卡目录
-        sdCardDir = Environment.getExternalStorageDirectory();
-        if (sdCardDir.exists()) {
-            currentParent = sdCardDir;
-            currentFiles = currentParent.listFiles();
-            inflateListView(currentFiles);
-        }
     }
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -160,17 +146,17 @@ public class FilePageFragment extends Fragment {
      *
      * @param files
      */
-    private void inflateListView(File[] files) {
+    private void inflateListView(List<FileModel> files) {
         List<Map<String, Object>> listItems = new ArrayList<>();
-        for (File f : files) {
+        for (FileModel f : files) {
             Map<String, Object> item = new HashMap<>();
-            if (f.isDirectory()) {
+            if (f.isDir()) {
                 item.put("fileIcon", R.mipmap.folder);
             } else {
                 item.put("fileIcon", R.mipmap.file);
             }
             item.put("fileName", f.getName());
-            item.put("createTime", sdf.format(new Date(f.lastModified())));
+            item.put("createTime", sdf.format(new Date(f.getLastModified())));
 
             listItems.add(item);
         }
@@ -180,10 +166,27 @@ public class FilePageFragment extends Fragment {
         listView.setAdapter(adapter);
 
         TextView tv = (TextView) view.findViewById(R.id.currentPath);
-        try {
-            tv.setText("当前路径:" + currentParent.getCanonicalPath());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        tv.setText("当前路径:" + currentPath);
     }
+
+    Handler fileHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                    List<FileModel> list = (List<FileModel>) msg.obj;
+                    if (null != list) {
+                        inflateListView(list);
+                    }
+                    break;
+                case 1://连接服务器成功
+                    if (null != msg)
+                        clientThread.recvHandler.sendMessage(msg);
+                    msg = null;//置空表明已处理
+
+
+            }
+            super.handleMessage(msg);
+        }
+    };
 }

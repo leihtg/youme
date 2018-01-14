@@ -316,8 +316,8 @@ public class PullRefreshView extends LinearLayout {
         LayoutParams lp = (LayoutParams) this.refreshView.getLayoutParams();
         int startY = lp.topMargin;
 
+        scroller.startScroll(0, startY, 0, refreshTop);
         invalidate();
-        scroller.startScroll(0, startY, 0, refreshTop, 1000);
     }
 
     /**

@@ -10,6 +10,8 @@ import android.os.Environment;
  */
 public class APPFinal {
 
+    public static final String appDir = Environment.getExternalStorageDirectory().getAbsolutePath()+"/yunPan";
+
     /**
      * bug发送地址
      */

@@ -16,8 +16,11 @@ import java.util.Arrays;
  * create at 2018年1月8日17:39:49
  */
 public class TCPSingleton {
+    private int count;//重试次数
 
     public Handler connHandler;
+
+    InetAddress hostAddr;
 
     public boolean hasConnect = false;
 
@@ -46,6 +49,9 @@ public class TCPSingleton {
                         ds.setBroadcast(true);
                         ds.send(packet);
                         Thread.sleep(3000);
+                        if (count++ > 10) {//重试10次
+                            break;
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (InterruptedException e) {
@@ -71,7 +77,7 @@ public class TCPSingleton {
                     if (null != buf) {
                         switch (buf[0]) {
                             case Contant.RESP_HOST_MSG:
-                                InetAddress hostAddr = packet.getAddress();
+                                hostAddr = packet.getAddress();
                                 if (null != connHandler) {
                                     Message msg = new Message();
                                     msg.what = Contant.RESP_HOST_MSG;
