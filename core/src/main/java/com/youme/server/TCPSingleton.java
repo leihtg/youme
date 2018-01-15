@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.Arrays;
 
 /**
@@ -25,7 +24,7 @@ public class TCPSingleton {
     public boolean hasConnect = false;
 
     private TCPSingleton() {
-        server.start();
+        receiveBrocast();
         brocastLocalHost();
     }
 
@@ -35,12 +34,14 @@ public class TCPSingleton {
         return singleton;
     }
 
+    //发送广播
     public void brocastLocalHost() {
         new Thread() {
             @Override
             public void run() {
                 while (!hasConnect) {
                     try {
+                        //发送受限广播,同一个局域网内可以接收到
                         InetAddress address = InetAddress.getByName("255.255.255.255");
                         byte[] hostMsg = new byte[]{Contant.REQ_HOST_MSG};
                         DatagramPacket packet = new DatagramPacket(hostMsg, hostMsg.length, address, Contant.BROCAST_PORT);
@@ -48,13 +49,12 @@ public class TCPSingleton {
                         DatagramSocket ds = new DatagramSocket();
                         ds.setBroadcast(true);
                         ds.send(packet);
+
                         Thread.sleep(3000);
                         if (count++ > 10) {//重试10次
-                            break;
+//                            break;
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -62,38 +62,39 @@ public class TCPSingleton {
         }.start();
     }
 
-    Thread server = new Thread() {
-        @Override
-        public void run() {
-            try {
-                DatagramSocket ds = new DatagramSocket(Contant.BROCAST_PORT);
-                ds.setBroadcast(true);
-                while (true) {
-                    byte[] buf = new byte[2048];
-                    DatagramPacket packet = new DatagramPacket(buf, buf.length);
-                    ds.receive(packet);
-                    // 接收的数据
-                    buf = Arrays.copyOf(packet.getData(), packet.getLength());
-                    if (null != buf) {
-                        switch (buf[0]) {
-                            case Contant.RESP_HOST_MSG:
-                                hostAddr = packet.getAddress();
-                                if (null != connHandler) {
-                                    Message msg = new Message();
-                                    msg.what = Contant.RESP_HOST_MSG;
-                                    msg.obj = hostAddr;
-                                    connHandler.sendMessage(msg);
-                                }
+    //接收广播
+    private void receiveBrocast() {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    DatagramSocket ds = new DatagramSocket(Contant.BROCAST_PORT);
+                    ds.setBroadcast(true);
+                    while (true) {
+                        byte[] buf = new byte[2048];
+                        DatagramPacket packet = new DatagramPacket(buf, buf.length);
+                        ds.receive(packet);
+                        // 接收的数据
+                        buf = Arrays.copyOf(packet.getData(), packet.getLength());
+                        if (null != buf) {
+                            switch (buf[0]) {
+                                case Contant.RESP_HOST_MSG:
+                                    hostAddr = packet.getAddress();
+                                    if (null != connHandler) {
+                                        Message msg = new Message();
+                                        msg.what = Contant.RESP_HOST_MSG;
+                                        msg.obj = hostAddr;
+                                        connHandler.sendMessage(msg);
+                                    }
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (SocketException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-        }
-    };
+        }.start();
+    }
 
 
     public static void main(String[] args) throws IOException {

@@ -70,9 +70,6 @@ public class FilePageFragment extends Fragment {
 
                 msg = new Message();
                 msg.obj = fp;
-
-                TCPClient = new TCPClient(fileHandler);
-                new Thread(TCPClient).start();
             }
         });
         listView.setOnItemClickListener(clickListener);

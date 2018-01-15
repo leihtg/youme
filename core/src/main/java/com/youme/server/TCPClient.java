@@ -3,17 +3,13 @@ package com.youme.server;
 import android.os.Handler;
 import android.os.Message;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.youme.contant.Contant;
-import com.youme.contant.FileModel;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.List;
 
 /**
  * Created by Thinkpad on 2018/1/14 20:58.
@@ -25,16 +21,16 @@ public class TCPClient {
     //向UI发送消息
     private Handler connectHandler;
     private Handler receiveDataHandler;
+    private Handler sendFailHandler;
+
     //向本线程发送消息
     public Handler recvHandler;
 
-    static Gson gson = new Gson();
-
-    OutputStream os;
-
-    public TCPClient(InetAddress hostAddr, Handler connectHandler) {
-        this.connectHandler = connectHandler;
+    public TCPClient(InetAddress hostAddr, Handler connectHandler, Handler receiveDataHandler, Handler sendFailHandler) {
         this.hostAddr = hostAddr;
+        this.connectHandler = connectHandler;
+        this.receiveDataHandler = receiveDataHandler;
+        this.sendFailHandler = sendFailHandler;
     }
 
     public void connect() {
@@ -49,10 +45,10 @@ public class TCPClient {
             e.printStackTrace();
         } finally {
             if (isConnected) {
-                receiveData.start();
+                thread_receiveData.start();
             } else {
-                if (receiveData.isAlive()) {
-                    receiveData.interrupt();
+                if (thread_receiveData.isAlive()) {
+                    thread_receiveData.interrupt();
                 }
                 shutDown();
             }
@@ -74,38 +70,84 @@ public class TCPClient {
         }
     }
 
-    Thread receiveData = new Thread() {
+    Thread thread_receiveData = new Thread() {
         @Override
         public void run() {
             try {
-                byte[] buf = new byte[BagPacket.getHeadLen()];
-                receiveByLen(buf);//读取头信息
+                while (isConnected) {
+                    byte[] buf = new byte[BagPacket.getHeadLen()];
+                    receiveByLen(buf);//读取头信息
 
-                BagPacket head = BagPacket.splitBag(buf);
+                    BagPacket head = BagPacket.splitBag(buf);
 
-                byte[] bodyBuf = new byte[head.length];
-                receiveByLen(bodyBuf);
+                    byte[] bodyBuf = new byte[head.length];
+                    receiveByLen(bodyBuf);
 
-                ReceiveData rd = new ReceiveData();
-                rd.type = head.type;
-                rd.data = new String(bodyBuf, "UTF8");
+                    //封装接收到的数据
+                    ReceiveData rd = new ReceiveData();
+                    rd.type = head.type;
+                    rd.data = new String(bodyBuf, "UTF8");
 
-                if (null != receiveDataHandler) {
-                    Message msg = new Message();
-                    msg.obj = rd;
-                    receiveDataHandler.sendMessage(msg);
+                    if (null != receiveDataHandler) {
+                        Message msg = new Message();
+                        msg.obj = rd;
+                        receiveDataHandler.sendMessage(msg);
+                    }
                 }
-
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
+                isConnected = false;
+                Message msg = new Message();
+                msg.obj = "fail";
+                connectHandler.sendMessage(msg);
+            } finally {
+                if (!isConnected) {
+                    if (thread_receiveData.isAlive()) {
+                        thread_receiveData.interrupt();
+                    }
+                    shutDown();
+                } else {
+                    if (thread_receiveData.isInterrupted()) {
+                        thread_receiveData.notifyAll();
+                    }
+                }
             }
         }
     };
 
     /**
+     * 向服务器发送数据
+     *
+     * @param type
+     * @param data
+     */
+    public void send(final int type, final String data) {
+        new Thread() {
+            @Override
+            public void run() {
+                synchronized (client) {
+                    try {
+                        byte[] body = data.getBytes("UTF8");
+                        byte[] head = BagPacket.AssembleBag(body.length, type);
+
+                        OutputStream os = client.getOutputStream();
+                        os.write(head);
+                        os.write(body);
+                        os.flush();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Message msg = new Message();
+                        msg.obj = "fail";
+                        sendFailHandler.sendMessage(msg);
+                    }
+                }
+            }
+        }.start();
+    }
+
+    /**
      * 读取长度
      *
-     * @param len
      * @param bytes
      */
     private void receiveByLen(byte[] bytes) {

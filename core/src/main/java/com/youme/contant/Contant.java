@@ -18,4 +18,6 @@ public class Contant {
     // 获取目录
     public static final byte FETCH_DIR = 0x03;
 
+    //版本
+    public static final int VERSION = 1;
 }
