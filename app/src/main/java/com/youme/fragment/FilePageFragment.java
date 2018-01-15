@@ -22,7 +22,7 @@ import com.youme.R;
 import com.youme.contant.Contant;
 import com.youme.contant.FileModel;
 import com.youme.contant.FileParam;
-import com.youme.server.ClientThread;
+import com.youme.server.TCPClient;
 import com.youme.view.PullRefreshView;
 
 import java.io.File;
@@ -43,7 +43,7 @@ public class FilePageFragment extends Fragment {
     private String currentPath = "";//当前文件路径默认为空
     private File[] currentFiles;
     private PullRefreshView pullRefreshView;
-    ClientThread clientThread;
+    TCPClient TCPClient;
 
     //向服务器查询数据
     Message msg;
@@ -71,8 +71,8 @@ public class FilePageFragment extends Fragment {
                 msg = new Message();
                 msg.obj = fp;
 
-                clientThread = new ClientThread(fileHandler);
-                new Thread(clientThread).start();
+                TCPClient = new TCPClient(fileHandler);
+                new Thread(TCPClient).start();
             }
         });
         listView.setOnItemClickListener(clickListener);
@@ -181,7 +181,7 @@ public class FilePageFragment extends Fragment {
                     break;
                 case 1://连接服务器成功
                     if (null != msg)
-                        clientThread.recvHandler.sendMessage(msg);
+                        TCPClient.recvHandler.sendMessage(msg);
                     msg = null;//置空表明已处理
 
 
