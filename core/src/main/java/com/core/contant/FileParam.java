@@ -5,16 +5,7 @@ package com.core.contant;
  * Created by Thinkpad on 2018/1/14 19:11.
  */
 public class FileParam {
-    private byte msgType;
     private String path;
-
-    public byte getMsgType() {
-        return msgType;
-    }
-
-    public void setMsgType(byte msgType) {
-        this.msgType = msgType;
-    }
 
     public String getPath() {
         return path;

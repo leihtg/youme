@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.core.contant.ContantMsg;
 import com.core.contant.FileModel;
 import com.core.contant.FileParam;
+import com.core.server.ReceiveData;
 import com.core.server.TCPClient;
 import com.core.server.TCPSingleton;
 import com.core.util.JSONUtil;
@@ -67,7 +68,6 @@ public class FilePageFragment extends Fragment {
             public void onRefresh(final PullRefreshView view) {
                 pullRefreshView.finishRefresh();//刷新成功
                 FileParam fp = new FileParam();
-                fp.setMsgType(ContantMsg.FETCH_DIR);
                 fp.setPath(currentPath);
 
                 TCPSingleton.getInstance().sendData(ContantMsg.FETCH_DIR, fp);
@@ -171,9 +171,10 @@ public class FilePageFragment extends Fragment {
     Handler receiveDataHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what) {
+            ReceiveData rd = (ReceiveData) msg.obj;
+            switch (rd.type) {
                 case ContantMsg.FILE_LIST_MSG:
-                    List<FileModel> list = JSONUtil.fromJson(msg.obj.toString());
+                    List<FileModel> list = JSONUtil.getFileModelList(rd.data);
                     if (null != list) {
                         inflateListView(list);
                     }

@@ -23,9 +23,6 @@ public class TCPClient {
     private Handler receiveDataHandler;
     private Handler sendFailHandler;
 
-    //向本线程发送消息
-    public Handler recvHandler;
-
     public TCPClient(InetAddress hostAddr, Handler connectHandler, Handler receiveDataHandler, Handler sendFailHandler) {
         this.hostAddr = hostAddr;
         this.connectHandler = connectHandler;
@@ -88,6 +85,7 @@ public class TCPClient {
                     rd.type = head.type;
                     rd.data = new String(bodyBuf, "UTF8");
 
+                    receiveDataHandler = TCPSingleton.getInstance().receiveDataHandler;
                     if (null != receiveDataHandler) {
                         Message msg = new Message();
                         msg.obj = rd;
@@ -125,22 +123,22 @@ public class TCPClient {
         new Thread() {
             @Override
             public void run() {
-                synchronized (client) {
-                    try {
-                        byte[] body = data.getBytes("UTF8");
-                        byte[] head = BagPacket.AssembleBag(body.length, type);
+//                synchronized (client) {
+                try {
+                    byte[] body = data.getBytes("UTF8");
+                    byte[] head = BagPacket.AssembleBag(body.length, type);
 
-                        OutputStream os = client.getOutputStream();
-                        os.write(head);
-                        os.write(body);
-                        os.flush();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Message msg = new Message();
-                        msg.obj = "fail";
-                        sendFailHandler.sendMessage(msg);
-                    }
+                    OutputStream os = client.getOutputStream();
+                    os.write(head);
+                    os.write(body);
+                    os.flush();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Message msg = new Message();
+                    msg.obj = "fail";
+                    sendFailHandler.sendMessage(msg);
                 }
+//                }
             }
         }.start();
     }
