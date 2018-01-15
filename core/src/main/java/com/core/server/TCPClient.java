@@ -1,9 +1,9 @@
-package com.youme.server;
+package com.core.server;
 
 import android.os.Handler;
 import android.os.Message;
 
-import com.youme.contant.Contant;
+import com.core.contant.Contant;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,10 +37,10 @@ public class TCPClient {
         Message msg = new Message();
         try {
             client = new Socket(this.hostAddr, Contant.SERVER_PORT);
-            msg.obj = "succ";
+            msg.what = Contant.CONN_HOST_SUCC;
             isConnected = true;
         } catch (Exception e) {
-            msg.obj = "fail";
+            msg.what = Contant.CONN_HOST_FAIL;
             isConnected = false;
             e.printStackTrace();
         } finally {
@@ -98,7 +98,7 @@ public class TCPClient {
                 e.printStackTrace();
                 isConnected = false;
                 Message msg = new Message();
-                msg.obj = "fail";
+                msg.what = Contant.CONN_HOST_FAIL;
                 connectHandler.sendMessage(msg);
             } finally {
                 if (!isConnected) {
@@ -165,7 +165,7 @@ public class TCPClient {
             e.printStackTrace();
             isConnected = false;
             Message msg = new Message();
-            msg.obj = "fail";
+            msg.what = Contant.CONN_HOST_FAIL;
             connectHandler.sendMessage(msg);
         }
     }

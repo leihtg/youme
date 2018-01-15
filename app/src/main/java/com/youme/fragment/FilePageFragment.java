@@ -18,11 +18,13 @@ import android.widget.PopupMenu;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.core.contant.ContantMsg;
+import com.core.contant.FileModel;
+import com.core.contant.FileParam;
+import com.core.server.TCPClient;
+import com.core.server.TCPSingleton;
+import com.core.util.JSONUtil;
 import com.youme.R;
-import com.youme.contant.Contant;
-import com.youme.contant.FileModel;
-import com.youme.contant.FileParam;
-import com.youme.server.TCPClient;
 import com.youme.view.PullRefreshView;
 
 import java.io.File;
@@ -65,11 +67,10 @@ public class FilePageFragment extends Fragment {
             public void onRefresh(final PullRefreshView view) {
                 pullRefreshView.finishRefresh();//刷新成功
                 FileParam fp = new FileParam();
-                fp.setMsgType(Contant.FETCH_DIR);
+                fp.setMsgType(ContantMsg.FETCH_DIR);
                 fp.setPath(currentPath);
 
-                msg = new Message();
-                msg.obj = fp;
+                TCPSingleton.getInstance().sendData(ContantMsg.FETCH_DIR, fp);
             }
         });
         listView.setOnItemClickListener(clickListener);
@@ -91,6 +92,7 @@ public class FilePageFragment extends Fragment {
                 return false;
             }
         });
+        TCPSingleton.getInstance().receiveDataHandler = receiveDataHandler;
     }
 
     @Nullable
@@ -166,22 +168,16 @@ public class FilePageFragment extends Fragment {
         tv.setText("当前路径:" + currentPath);
     }
 
-    Handler fileHandler = new Handler() {
+    Handler receiveDataHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case 0:
-                    List<FileModel> list = (List<FileModel>) msg.obj;
+                case ContantMsg.FILE_LIST_MSG:
+                    List<FileModel> list = JSONUtil.fromJson(msg.obj.toString());
                     if (null != list) {
                         inflateListView(list);
                     }
                     break;
-                case 1://连接服务器成功
-                    if (null != msg)
-                        TCPClient.recvHandler.sendMessage(msg);
-                    msg = null;//置空表明已处理
-
-
             }
             super.handleMessage(msg);
         }

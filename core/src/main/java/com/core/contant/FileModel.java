@@ -1,4 +1,4 @@
-package com.youme.contant;
+package com.core.contant;
 
 /**
  * Created by Thinkpad on 2018/1/14 19:37.

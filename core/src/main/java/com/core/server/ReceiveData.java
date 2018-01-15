@@ -1,4 +1,4 @@
-package com.youme.server;
+package com.core.server;
 
 /**
  * 接收的来自服务器的数据

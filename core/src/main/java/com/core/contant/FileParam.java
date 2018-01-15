@@ -1,4 +1,4 @@
-package com.youme.contant;
+package com.core.contant;
 
 /**
  * 文件查询时的参数

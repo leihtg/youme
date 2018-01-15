@@ -25,12 +25,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.youme.R;
-import com.youme.contant.Contant;
+import com.core.contant.Contant;
 import com.youme.fragment.FilePageFragment;
 import com.youme.fragment.SecondFragment;
 import com.youme.fragment.SpeechFragment;
 import com.youme.fragment.StudyFragment;
-import com.youme.server.TCPSingleton;
+import com.core.server.TCPSingleton;
 import com.youme.view.CircleImageViewCustom;
 
 import java.net.InetAddress;
@@ -77,18 +77,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
          * 初始化侧边栏
          */
         initListView();
-        TCPSingleton.getInstance().connHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what) {
-                    case Contant.RESP_HOST_MSG:
-                        InetAddress addr = (InetAddress) msg.obj;
-                        TCPSingleton.getInstance().hasConnect = true;
-                        Toast.makeText(MainActivity.this, "服务器地址:" + addr.toString() + ",连接成功", Toast.LENGTH_LONG).show();
-                }
-                super.handleMessage(msg);
-            }
-        };
+        TCPSingleton.getInstance().connHandler = connectHandler;
     }
 
     private void initViewPage() {
@@ -377,4 +366,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             isExit = false;
         }
     };
+
+    Handler connectHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case Contant.FIND_HOST_ADDR_MSG:
+                    InetAddress addr = (InetAddress) msg.obj;
+                    TCPSingleton.getInstance().hasFindHostAddress = true;
+                    toast("服务器地址:" + addr.toString() + ",连接成功");
+                    break;
+                case Contant.FIND_HOST_ADDR_TIMEOUT:
+                    toast("服务器IP查询超时");
+                    break;
+                case Contant.CONN_HOST_SUCC:
+                    toast("连接服务器成功");
+                    break;
+                case Contant.CONN_HOST_FAIL:
+                    toast("连接服务器失败");
+                    break;
+            }
+        }
+    };
+
+    private void toast(String msg) {
+        Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+    }
 }

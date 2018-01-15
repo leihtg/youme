@@ -1,11 +1,11 @@
-package com.youme.server;
+package com.core.server;
 
 import android.os.Handler;
 import android.os.Message;
 
-import com.youme.contant.Contant;
+import com.core.contant.Contant;
+import com.core.util.JSONUtil;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -17,11 +17,13 @@ import java.util.Arrays;
 public class TCPSingleton {
     private int count;//重试次数
 
+    private TCPClient tcpClient;
+
     public Handler connHandler;
+    public Handler receiveDataHandler;
+    public Handler sendFailHandler;
 
-    InetAddress hostAddr;
-
-    public boolean hasConnect = false;
+    public boolean hasFindHostAddress = false;
 
     private TCPSingleton() {
         receiveBrocast();
@@ -34,12 +36,28 @@ public class TCPSingleton {
         return singleton;
     }
 
+    /**
+     * 连接服务器
+     */
+    private void connectServer(InetAddress hostAddr) {
+        tcpClient = new TCPClient(hostAddr, connHandler, receiveDataHandler, sendFailHandler);
+        if (null != tcpClient) {
+            tcpClient.connect();
+        }
+    }
+
+    public void sendData(int type, Object obj) {
+        if (null != tcpClient) {
+            tcpClient.send(type, JSONUtil.toJson(obj));
+        }
+    }
+
     //发送广播
     public void brocastLocalHost() {
         new Thread() {
             @Override
             public void run() {
-                while (!hasConnect) {
+                while (!hasFindHostAddress) {
                     try {
                         //发送受限广播,同一个局域网内可以接收到
                         InetAddress address = InetAddress.getByName("255.255.255.255");
@@ -52,7 +70,10 @@ public class TCPSingleton {
 
                         Thread.sleep(3000);
                         if (count++ > 10) {//重试10次
-//                            break;
+                            Message msg = new Message();
+                            msg.what = Contant.FIND_HOST_ADDR_TIMEOUT;
+                            connHandler.sendMessage(msg);
+                            break;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -78,14 +99,16 @@ public class TCPSingleton {
                         buf = Arrays.copyOf(packet.getData(), packet.getLength());
                         if (null != buf) {
                             switch (buf[0]) {
-                                case Contant.RESP_HOST_MSG:
-                                    hostAddr = packet.getAddress();
+                                case Contant.FIND_HOST_ADDR_MSG:
+                                    InetAddress hostAddr = packet.getAddress();
                                     if (null != connHandler) {
                                         Message msg = new Message();
-                                        msg.what = Contant.RESP_HOST_MSG;
+                                        msg.what = Contant.FIND_HOST_ADDR_MSG;
                                         msg.obj = hostAddr;
                                         connHandler.sendMessage(msg);
                                     }
+                                    connectServer(hostAddr);
+                                    break;
                             }
                         }
                     }
@@ -96,9 +119,4 @@ public class TCPSingleton {
         }.start();
     }
 
-
-    public static void main(String[] args) throws IOException {
-        TCPSingleton t = new TCPSingleton();
-        t.brocastLocalHost();
-    }
 }

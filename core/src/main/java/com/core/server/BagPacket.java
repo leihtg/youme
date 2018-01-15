@@ -1,6 +1,6 @@
-package com.youme.server;
+package com.core.server;
 
-import com.youme.contant.Contant;
+import com.core.contant.Contant;
 
 /**
  * 报文包
