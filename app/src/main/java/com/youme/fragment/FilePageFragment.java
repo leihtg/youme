@@ -22,10 +22,10 @@ import com.core.contant.ContantMsg;
 import com.core.contant.FileModel;
 import com.core.contant.FileParam;
 import com.core.server.ReceiveData;
-import com.core.server.TCPClient;
 import com.core.server.TCPSingleton;
 import com.core.util.JSONUtil;
 import com.youme.R;
+import com.youme.util.FileUtil;
 import com.youme.view.PullRefreshView;
 
 import java.io.File;
@@ -43,13 +43,9 @@ public class FilePageFragment extends Fragment {
     private View view;
     private Context context;
     private ListView listView;//文件列表
-    private String currentPath = "";//当前文件路径默认为空
-    private File[] currentFiles;
+    private String currentPath = ".";//当前文件路径默认为空
+    private List<FileModel> listFile;
     private PullRefreshView pullRefreshView;
-    TCPClient TCPClient;
-
-    //向服务器查询数据
-    Message msg;
 
     @Nullable
     @Override
@@ -67,10 +63,7 @@ public class FilePageFragment extends Fragment {
             @Override
             public void onRefresh(final PullRefreshView view) {
                 pullRefreshView.finishRefresh();//刷新成功
-                FileParam fp = new FileParam();
-                fp.setPath(currentPath);
-
-                TCPSingleton.getInstance().sendData(ContantMsg.FETCH_DIR, fp);
+                enterFolder();
             }
         });
         listView.setOnItemClickListener(clickListener);
@@ -80,32 +73,46 @@ public class FilePageFragment extends Fragment {
         //初始化菜单
         initMenuView(view);
 
-        view.setFocusable(true);
-        view.setFocusableInTouchMode(true);
-        view.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN) {
-
-                    return true;
-                }
-                return false;
-            }
-        });
         TCPSingleton.getInstance().receiveDataHandler = receiveDataHandler;
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        view.setFocusable(true);
+        view.setFocusableInTouchMode(true);
+        view.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN) {
+                    File pf = new File(currentPath).getParentFile();
+                    if (null != pf) {
+                        currentPath = pf.getPath();
+                        enterFolder();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
         return view;
+    }
+
+    private void enterFolder() {
+        FileParam fp = new FileParam();
+        fp.setPath(currentPath);
+        TCPSingleton.getInstance().sendData(ContantMsg.FETCH_DIR, fp);
     }
 
     //listView点击事件
     AdapterView.OnItemClickListener clickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+            FileModel fm = listFile.get(position);
+            if (fm.isDir()) {
+                currentPath = new File(currentPath, fm.getName()).getPath();
+                enterFolder();
+            }
         }
     };
 
@@ -146,13 +153,14 @@ public class FilePageFragment extends Fragment {
      * @param files
      */
     private void inflateListView(List<FileModel> files) {
+        this.listFile = files;
         List<Map<String, Object>> listItems = new ArrayList<>();
         for (FileModel f : files) {
             Map<String, Object> item = new HashMap<>();
             if (f.isDir()) {
                 item.put("fileIcon", R.mipmap.folder);
             } else {
-                item.put("fileIcon", R.mipmap.file);
+                item.put("fileIcon", FileUtil.getImg(f.getName()));
             }
             item.put("fileName", f.getName());
             item.put("createTime", sdf.format(new Date(f.getLastModified())));

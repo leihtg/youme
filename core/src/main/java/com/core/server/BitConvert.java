@@ -15,7 +15,7 @@ public class BitConvert {
     public static int convertToInt(byte[] buf, int offset, int count) {
         int ret = 0, len = buf.length;
         for (int i = offset, px = 0; i < offset + count && i < len; i++, px++) {
-            ret |= buf[i] << (px * 8);
+            ret |= (buf[i] & 0xff) << (px * 8);
         }
         return ret;
     }

@@ -123,22 +123,24 @@ public class TCPClient {
         new Thread() {
             @Override
             public void run() {
-//                synchronized (client) {
-                try {
-                    byte[] body = data.getBytes("UTF8");
-                    byte[] head = BagPacket.AssembleBag(body.length, type);
+                synchronized (client) {
+                    try {
+                        byte[] body = data.getBytes("UTF8");
+                        byte[] head = BagPacket.AssembleBag(body.length, type);
 
-                    OutputStream os = client.getOutputStream();
-                    os.write(head);
-                    os.write(body);
-                    os.flush();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Message msg = new Message();
-                    msg.obj = "fail";
-                    sendFailHandler.sendMessage(msg);
+                        OutputStream os = client.getOutputStream();
+                        os.write(head);
+                        os.write(body);
+                        os.flush();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        if (null != sendFailHandler) {
+                            Message msg = new Message();
+                            msg.obj = "fail";
+                            sendFailHandler.sendMessage(msg);
+                        }
+                    }
                 }
-//                }
             }
         }.start();
     }
