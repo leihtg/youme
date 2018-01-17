@@ -1,9 +1,10 @@
 package com.core.util;
 
-import com.core.contant.FileModel;
+import com.anser.model.FileModel;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,13 +17,24 @@ public class JSONUtil {
         return gson.toJson(object);
     }
 
-    public static <T> T fromJson(String json) {
-        return gson.fromJson(json, new TypeToken<T>() {
-        }.getType());
+    public static <T> T fromJson(String json,Class<T> clazz) {
+        return gson.fromJson(json, clazz);
     }
 
     public static List<FileModel> getFileModelList(String json) {
         return gson.fromJson(json, new TypeToken<List<FileModel>>() {
         }.getType());
+    }
+
+    public static void main(String[] args) {
+        FileModel fm = new FileModel();
+        fm.setDir(true);
+        fm.setName("hehe");
+        List<FileModel> list = new ArrayList<>();
+        list.add(fm);
+        String json = gson.toJson(fm);
+        System.out.println(json);
+        fm = fromJson(json,FileModel.class);
+        System.out.println(fm);
     }
 }

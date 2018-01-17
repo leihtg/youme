@@ -3,13 +3,17 @@ package com.core.server;
 import android.os.Handler;
 import android.os.Message;
 
-import com.core.contant.Contant;
-import com.core.util.JSONUtil;
+import com.anser.contant.Contant;
+import com.anser.contant.DataType;
+import com.anser.contant.ReceiveData;
+import com.anser.model.base.ModelOutBase;
+import com.google.gson.Gson;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * create at 2018年1月8日17:39:49
@@ -20,8 +24,10 @@ public class TCPSingleton {
     private TCPClient tcpClient;
 
     public Handler connHandler;
-    public Handler receiveDataHandler;
     public Handler sendFailHandler;
+
+    //存放handler
+    private ConcurrentHashMap<String, Handler> handlerMsg = new ConcurrentHashMap<>();
 
     public boolean hasFindHostAddress = false;
 
@@ -46,10 +52,25 @@ public class TCPSingleton {
         }
     }
 
-    public void sendData(int type, Object obj) {
-        if (null != tcpClient) {
-            tcpClient.send(type, JSONUtil.toJson(obj));
+    /**
+     * 函数访问
+     *
+     * @param data
+     * @param uuid
+     * @param receiveMethod
+     * @return
+     */
+    public boolean FuncSend(String data, String uuid, Handler receiveMethod) {
+        try {
+            if (null != tcpClient) {
+                handlerMsg.put(uuid, receiveMethod);
+                tcpClient.send(DataType.CallFunc, data);
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
     //发送广播
@@ -118,5 +139,29 @@ public class TCPSingleton {
             }
         }.start();
     }
+
+    /**
+     * 接收来自服务器的数据,数据中转站,所以的数据通过这个分发出去
+     */
+    private Handler receiveDataHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            ReceiveData rd = (ReceiveData) msg.obj;
+            switch (rd.type) {
+                case DataType.HeartBeat:
+                    break;
+                case DataType.CallFunc:
+                    synchronized (handlerMsg) {
+                        ModelOutBase ob = new Gson().fromJson(rd.data, ModelOutBase.class);
+                        Handler handler = handlerMsg.get(ob.getUuid());
+                        handlerMsg.remove(ob.getUuid());
+                    }
+                    break;
+                case DataType.ClientNotice:
+                    break;
+            }
+        }
+    };
+
 
 }

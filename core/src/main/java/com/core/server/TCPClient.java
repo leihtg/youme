@@ -3,7 +3,8 @@ package com.core.server;
 import android.os.Handler;
 import android.os.Message;
 
-import com.core.contant.Contant;
+import com.anser.contant.Contant;
+import com.anser.util.BagPacket;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,12 +86,9 @@ public class TCPClient {
                     rd.type = head.type;
                     rd.data = new String(bodyBuf, "UTF8");
 
-                    receiveDataHandler = TCPSingleton.getInstance().receiveDataHandler;
-                    if (null != receiveDataHandler) {
-                        Message msg = new Message();
-                        msg.obj = rd;
-                        receiveDataHandler.sendMessage(msg);
-                    }
+                    Message msg = new Message();
+                    msg.obj = rd;
+                    receiveDataHandler.sendMessage(msg);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

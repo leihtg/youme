@@ -15,26 +15,19 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
-import com.core.contant.ContantMsg;
-import com.core.contant.FileModel;
-import com.core.contant.FileParam;
-import com.core.server.ReceiveData;
+import com.anser.contant.MsgType;
+import com.anser.model.FileModel;
+import com.anser.model.FileParam;
 import com.core.server.TCPSingleton;
 import com.core.util.JSONUtil;
 import com.youme.R;
-import com.youme.util.FileUtil;
+import com.youme.adapter.FileListAdapter;
 import com.youme.view.PullRefreshView;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 云盘碎片
@@ -72,8 +65,6 @@ public class FilePageFragment extends Fragment {
         initDirListView();
         //初始化菜单
         initMenuView(view);
-
-        TCPSingleton.getInstance().receiveDataHandler = receiveDataHandler;
     }
 
     @Nullable
@@ -101,7 +92,7 @@ public class FilePageFragment extends Fragment {
     private void enterFolder() {
         FileParam fp = new FileParam();
         fp.setPath(currentPath);
-        TCPSingleton.getInstance().sendData(ContantMsg.FETCH_DIR, fp);
+        TCPSingleton.getInstance().FuncSend(MsgType.FETCH_DIR, fp);
     }
 
     //listView点击事件
@@ -145,8 +136,6 @@ public class FilePageFragment extends Fragment {
         }
     }
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
     /**
      * 填充文件列表视图
      *
@@ -154,23 +143,9 @@ public class FilePageFragment extends Fragment {
      */
     private void inflateListView(List<FileModel> files) {
         this.listFile = files;
-        List<Map<String, Object>> listItems = new ArrayList<>();
-        for (FileModel f : files) {
-            Map<String, Object> item = new HashMap<>();
-            if (f.isDir()) {
-                item.put("fileIcon", R.mipmap.folder);
-            } else {
-                item.put("fileIcon", FileUtil.getImg(f.getName()));
-            }
-            item.put("fileName", f.getName());
-            item.put("createTime", sdf.format(new Date(f.getLastModified())));
-
-            listItems.add(item);
-        }
-        SimpleAdapter adapter = new SimpleAdapter(context, listItems, R.layout.dir_item,
-                new String[]{"fileIcon", "fileName", "createTime"}, new int[]{R.id.fileIcon, R.id.fileName, R.id.createTime});
+        FileListAdapter fileListAdapter = new FileListAdapter(context, listFile);
         //为listView设置adapter
-        listView.setAdapter(adapter);
+        listView.setAdapter(fileListAdapter);
 
         TextView tv = (TextView) view.findViewById(R.id.currentPath);
         tv.setText("当前路径:" + currentPath);
@@ -181,7 +156,7 @@ public class FilePageFragment extends Fragment {
         public void handleMessage(Message msg) {
             ReceiveData rd = (ReceiveData) msg.obj;
             switch (rd.type) {
-                case ContantMsg.FILE_LIST_MSG:
+                case MsgType.FILE_LIST_MSG:
                     List<FileModel> list = JSONUtil.getFileModelList(rd.data);
                     if (null != list) {
                         inflateListView(list);

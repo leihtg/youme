@@ -24,13 +24,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.anser.contant.Contant;
+import com.core.server.TCPSingleton;
 import com.youme.R;
-import com.core.contant.Contant;
 import com.youme.fragment.FilePageFragment;
 import com.youme.fragment.SecondFragment;
 import com.youme.fragment.SpeechFragment;
 import com.youme.fragment.StudyFragment;
-import com.core.server.TCPSingleton;
 import com.youme.view.CircleImageViewCustom;
 
 import java.net.InetAddress;
