@@ -18,9 +18,11 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.anser.contant.MsgType;
+import com.anser.contant.ReceiveData;
 import com.anser.model.FileModel;
-import com.anser.model.FileParam;
-import com.core.server.TCPSingleton;
+import com.anser.model.FileQueryModel_in;
+import com.anser.model.FileQueryModel_out;
+import com.core.server.FunCall;
 import com.core.util.JSONUtil;
 import com.youme.R;
 import com.youme.adapter.FileListAdapter;
@@ -90,9 +92,11 @@ public class FilePageFragment extends Fragment {
     }
 
     private void enterFolder() {
-        FileParam fp = new FileParam();
-        fp.setPath(currentPath);
-        TCPSingleton.getInstance().FuncSend(MsgType.FETCH_DIR, fp);
+        FileQueryModel_in fi = new FileQueryModel_in();
+        fi.setPath(currentPath);
+        FunCall<FileQueryModel_in, FileQueryModel_out> fc = new FunCall<>();
+        fc.FuncResultHandler = receiveDataHandler;
+        fc.call(fi, FileQueryModel_out.class);
     }
 
     //listView点击事件

@@ -155,6 +155,9 @@ public class TCPSingleton {
                         ModelOutBase ob = new Gson().fromJson(rd.data, ModelOutBase.class);
                         Handler handler = handlerMsg.get(ob.getUuid());
                         handlerMsg.remove(ob.getUuid());
+                        Message callMsg = new Message();
+                        callMsg.obj = rd;
+                        handler.sendMessage(callMsg);
                     }
                     break;
                 case DataType.ClientNotice:
