@@ -55,12 +55,16 @@ public class FileListAdapter extends BaseAdapter {
         ImageView fileIcon = (ImageView) view.findViewById(R.id.fileIcon);
         TextView createTime = (TextView) view.findViewById(R.id.createTime);
         TextView fileSize = (TextView) view.findViewById(R.id.fileSize);
+        TextView fileName = (TextView) view.findViewById(R.id.fileName);
 
         FileModel fm = list.get(position);
         fileSize.setText(FileUtil.getSize(fm.getLength()));
         createTime.setText(FileUtil.formatTime(fm.getLastModified()));
+        fileName.setText(fm.getName());
+
         if (fm.isDir()) {
             fileIcon.setImageResource(R.mipmap.folder);
+            fileSize.setVisibility(View.GONE);
         } else {//按文件格式显示图标
             fileIcon.setImageResource(FileUtil.getImg(fm.getName()));
         }

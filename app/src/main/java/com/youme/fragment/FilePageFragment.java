@@ -18,12 +18,10 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.anser.contant.MsgType;
-import com.anser.contant.ReceiveData;
 import com.anser.model.FileModel;
 import com.anser.model.FileQueryModel_in;
 import com.anser.model.FileQueryModel_out;
 import com.core.server.FunCall;
-import com.core.util.JSONUtil;
 import com.youme.R;
 import com.youme.adapter.FileListAdapter;
 import com.youme.view.PullRefreshView;
@@ -41,6 +39,7 @@ public class FilePageFragment extends Fragment {
     private String currentPath = ".";//当前文件路径默认为空
     private List<FileModel> listFile;
     private PullRefreshView pullRefreshView;
+    boolean canEnter = true;
 
     @Nullable
     @Override
@@ -105,7 +104,8 @@ public class FilePageFragment extends Fragment {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             FileModel fm = listFile.get(position);
-            if (fm.isDir()) {
+            if (fm.isDir() && canEnter) {
+                canEnter = false;
                 currentPath = new File(currentPath, fm.getName()).getPath();
                 enterFolder();
             }
@@ -159,16 +159,12 @@ public class FilePageFragment extends Fragment {
     Handler receiveDataHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            ReceiveData rd = (ReceiveData) msg.obj;
-            switch (rd.type) {
-                case MsgType.FILE_LIST_MSG:
-                    List<FileModel> list = JSONUtil.getFileModelList(rd.data);
-                    if (null != list) {
-                        inflateListView(list);
-                    }
-                    break;
+            FileQueryModel_out rd = (FileQueryModel_out) msg.obj;
+            List<FileModel> list = rd.getList();
+            canEnter = true;
+            if (null != list) {
+                inflateListView(list);
             }
-            super.handleMessage(msg);
         }
     };
 }
