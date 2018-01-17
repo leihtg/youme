@@ -94,6 +94,7 @@ public class FilePageFragment extends Fragment {
     private void enterFolder() {
         FileQueryModel_in fi = new FileQueryModel_in();
         fi.setPath(currentPath);
+        fi.setBusType(MsgType.FETCH_DIR);
         FunCall<FileQueryModel_in, FileQueryModel_out> fc = new FunCall<>();
         fc.FuncResultHandler = receiveDataHandler;
         fc.call(fi, FileQueryModel_out.class);
