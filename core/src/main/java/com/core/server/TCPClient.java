@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by Thinkpad on 2018/1/14 20:58.
@@ -45,14 +46,22 @@ public class TCPClient {
         } finally {
             if (isConnected) {
                 thread_receiveData.start();
+                thread_sendData.start();
             } else {
                 if (thread_receiveData.isAlive()) {
                     thread_receiveData.interrupt();
+                }
+                if (thread_sendData.isAlive()) {
+                    thread_sendData.interrupt();
                 }
                 shutDown();
             }
         }
         connectHandler.sendMessage(msg);
+    }
+
+    public boolean isConnected() {
+        return isConnected;
     }
 
     /**
@@ -112,36 +121,78 @@ public class TCPClient {
         }
     };
 
+    static LinkedBlockingQueue<ReceiveData> queue = new LinkedBlockingQueue<>(100);
+
+    Thread thread_sendData = new Thread() {
+        @Override
+        public void run() {
+            try {
+                while (isConnected) {
+                    ReceiveData take = queue.take();
+                    if(client.isClosed()){
+                        queue.offer(take);
+                        sleep(1000);
+                        continue;
+                    }
+                    synchronized (client) {
+                        byte[] body = take.data.getBytes("UTF8");
+                        byte[] head = BagPacket.AssembleBag(body.length, take.type);
+
+                        OutputStream os = client.getOutputStream();
+                        os.write(head);
+                        os.write(body);
+                        os.flush();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (null != sendFailHandler) {
+                    Message msg = new Message();
+                    msg.obj = "fail";
+                    sendFailHandler.sendMessage(msg);
+                }
+            }
+        }
+    };
+
     /**
      * 向服务器发送数据
      *
      * @param type
      * @param data
      */
-    public void send(final int type, final String data) {
-        new Thread() {
-            @Override
-            public void run() {
-                synchronized (client) {
-                    try {
-                        byte[] body = data.getBytes("UTF8");
-                        byte[] head = BagPacket.AssembleBag(body.length, type);
-
-                        OutputStream os = client.getOutputStream();
-                        os.write(head);
-                        os.write(body);
-                        os.flush();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        if (null != sendFailHandler) {
-                            Message msg = new Message();
-                            msg.obj = "fail";
-                            sendFailHandler.sendMessage(msg);
-                        }
-                    }
-                }
-            }
-        }.start();
+    public boolean send(final int type, final String data) {
+        ReceiveData rd = new ReceiveData();
+        rd.type = type;
+        rd.data = data;
+        if (!isConnected) {//如果没有连接，只保留最后一个请求数据
+            queue.clear();
+        }
+        boolean ret = queue.offer(rd);
+        return ret;
+//        new Thread() {
+//            @Override
+//            public void run() {
+//                synchronized (client) {
+//                    try {
+//                        byte[] body = data.getBytes("UTF8");
+//                        byte[] head = BagPacket.AssembleBag(body.length, type);
+//
+//                        OutputStream os = client.getOutputStream();
+//                        os.write(head);
+//                        os.write(body);
+//                        os.flush();
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                        if (null != sendFailHandler) {
+//                            Message msg = new Message();
+//                            msg.obj = "fail";
+//                            sendFailHandler.sendMessage(msg);
+//                        }
+//                    }
+//                }
+//            }
+//        }.start();
     }
 
     /**

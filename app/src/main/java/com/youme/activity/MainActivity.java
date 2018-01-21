@@ -373,7 +373,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             switch (msg.what) {
                 case Contant.FIND_HOST_ADDR_MSG:
                     InetAddress addr = (InetAddress) msg.obj;
-                    TCPSingleton.getInstance().hasFindHostAddress = true;
                     toast("服务器地址:" + addr.toString() + ",连接成功");
                     break;
                 case Contant.FIND_HOST_ADDR_TIMEOUT:

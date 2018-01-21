@@ -1,8 +1,9 @@
 package com.youme.fragment;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
@@ -17,16 +18,18 @@ import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
-import com.anser.contant.MsgType;
+import com.anser.enums.MsgType;
 import com.anser.model.FileModel;
 import com.anser.model.FileQueryModel_in;
 import com.anser.model.FileQueryModel_out;
 import com.core.server.FunCall;
 import com.youme.R;
 import com.youme.adapter.FileListAdapter;
+import com.youme.db.DbHelper;
 import com.youme.view.PullRefreshView;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,6 +42,7 @@ public class FilePageFragment extends Fragment {
     private String currentPath = ".";//当前文件路径默认为空
     private List<FileModel> listFile;
     private PullRefreshView pullRefreshView;
+    private DbHelper dbHelper;
     boolean canEnter = true;
 
     @Nullable
@@ -47,20 +51,20 @@ public class FilePageFragment extends Fragment {
         super.onCreate(savedInstanceState);
         view = LayoutInflater.from(getContext()).inflate(R.layout.yunpan_activity, null);
         context = view.getContext();
+        dbHelper = new DbHelper(context);
 
         listView = (ListView) view.findViewById(R.id.dirList);
         pullRefreshView = (PullRefreshView) view.findViewById(R.id.pullRefreshView_fileList);
         pullRefreshView.setListviewPosotion(1);//第一个
 
         //添加监听
+        listView.setOnItemClickListener(clickListener);
         pullRefreshView.setPullRefreshListener(new PullRefreshView.PullRefreshListener() {
             @Override
             public void onRefresh(final PullRefreshView view) {
-                pullRefreshView.finishRefresh();//刷新成功
                 enterFolder();
             }
         });
-        listView.setOnItemClickListener(clickListener);
 
         //加载文件列表
         initDirListView();
@@ -80,7 +84,7 @@ public class FilePageFragment extends Fragment {
                     File pf = new File(currentPath).getParentFile();
                     if (null != pf) {
                         currentPath = pf.getPath();
-                        enterFolder();
+                        inflateListView(getList(currentPath));
                         return true;
                     }
                 }
@@ -105,14 +109,20 @@ public class FilePageFragment extends Fragment {
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             FileModel fm = listFile.get(position);
             if (fm.isDir() && canEnter) {
-                canEnter = false;
                 currentPath = new File(currentPath, fm.getName()).getPath();
-                enterFolder();
+
+                List<FileModel> list = getList(currentPath);
+                if (null == list || list.isEmpty()) {
+                    canEnter = false;
+                    enterFolder();
+                } else {
+                    inflateListView(list);
+                }
             }
         }
     };
 
-    //加载弹出框
+    //加载弹出框in
     private void initMenuView(View view) {
         final PopupMenu popupMenu = new PopupMenu(getActivity(), view.findViewById(R.id.fenLei));
         getActivity().getMenuInflater().inflate(R.menu.file_popup_menu, popupMenu.getMenu());
@@ -135,9 +145,42 @@ public class FilePageFragment extends Fragment {
     }
 
     private void initDirListView() {
-        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            //没有sd卡或没有访问权限
+        inflateListView(getList(currentPath));
+    }
+
+    private List<FileModel> getList(String path) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        List<FileModel> list = new ArrayList<>();
+        Cursor cursor = db.rawQuery("select * from file where path=?", new String[]{path});
+        while (cursor.moveToNext()) {
+            FileModel fm = new FileModel();
+            String name = cursor.getString(1);
+            long length = cursor.getLong(2);
+            String dir = cursor.getString(3);
+            long time = cursor.getLong(4);
+
+            try {
+                fm.setName(name);
+                fm.setLength(length);
+                fm.setDir("true".equals(dir));
+                fm.setLastModified(time);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+            list.add(fm);
+        }
+        return list;
+    }
+
+    private void saveDb(List<FileModel> list, String parent) {
+        if (null == list || list.isEmpty()) {
             return;
+        }
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.execSQL("delete from file where path=?", new String[]{parent});
+        String sql = "insert into file values(null,?,?,?,?,?)";
+        for (FileModel fm : list) {
+            db.execSQL(sql, new Object[]{fm.getName(), fm.getLength(), fm.isDir() + "", fm.getLastModified(), parent});
         }
     }
 
@@ -164,6 +207,10 @@ public class FilePageFragment extends Fragment {
             canEnter = true;
             if (null != list) {
                 inflateListView(list);
+                saveDb(list, currentPath);
+            }
+            if (pullRefreshView.isRefreshing()) {
+                pullRefreshView.finishRefresh();//刷新成功
             }
         }
     };

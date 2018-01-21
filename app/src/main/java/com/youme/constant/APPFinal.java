@@ -10,8 +10,9 @@ import android.os.Environment;
  */
 public class APPFinal {
 
-    public static final String appDir = Environment.getExternalStorageDirectory().getAbsolutePath()+"/yunPan";
+    public static final String appDir = Environment.getExternalStorageDirectory().getAbsolutePath()+"/yunPan/";
 
+    public static final String dbName=appDir+"/db/file.db3";
     /**
      * bug发送地址
      */

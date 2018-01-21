@@ -29,7 +29,8 @@ public class TCPSingleton {
     //存放handler
     private ConcurrentHashMap<String, Handler> handlerMsg = new ConcurrentHashMap<>();
 
-    public boolean hasFindHostAddress = false;
+    //正在查找服务器
+    public volatile boolean isfindServerAddr = true;
 
     private TCPSingleton() {
         receiveBrocast();
@@ -63,6 +64,10 @@ public class TCPSingleton {
     public boolean FuncSend(String data, String uuid, Handler receiveMethod) {
         try {
             if (null != tcpClient) {
+                if (!tcpClient.isConnected() && !isfindServerAddr) {
+                    isfindServerAddr = true;
+                    brocastLocalHost();
+                }
                 handlerMsg.put(uuid, receiveMethod);
                 tcpClient.send(DataType.CallFunc, data);
             }
@@ -78,7 +83,7 @@ public class TCPSingleton {
         new Thread() {
             @Override
             public void run() {
-                while (!hasFindHostAddress) {
+                while (isfindServerAddr) {
                     try {
                         //发送受限广播,同一个局域网内可以接收到
                         InetAddress address = InetAddress.getByName("255.255.255.255");
@@ -94,7 +99,7 @@ public class TCPSingleton {
                             Message msg = new Message();
                             msg.what = Contant.FIND_HOST_ADDR_TIMEOUT;
                             connHandler.sendMessage(msg);
-                            break;
+                            isfindServerAddr = false;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -121,6 +126,7 @@ public class TCPSingleton {
                         if (null != buf) {
                             switch (buf[0]) {
                                 case Contant.FIND_HOST_ADDR_MSG:
+                                    isfindServerAddr = false;
                                     InetAddress hostAddr = packet.getAddress();
                                     if (null != connHandler) {
                                         Message msg = new Message();

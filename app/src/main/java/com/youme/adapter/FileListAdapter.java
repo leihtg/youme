@@ -66,6 +66,7 @@ public class FileListAdapter extends BaseAdapter {
             fileIcon.setImageResource(R.mipmap.folder);
             fileSize.setVisibility(View.GONE);
         } else {//按文件格式显示图标
+            fileSize.setVisibility(View.VISIBLE);
             fileIcon.setImageResource(FileUtil.getImg(fm.getName()));
         }
 
