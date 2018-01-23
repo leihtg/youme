@@ -46,22 +46,12 @@ public class SecondFragment extends Fragment {
         //获取系统的NotificationManager服务
         nm = (NotificationManager) view.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Button send = (Button) view.findViewById(R.id.sendNotify);
-        Button cancel = (Button) view.findViewById(R.id.cancleNotify);
-        startService = (Button) view.findViewById(R.id.startService);
-        unStartService = (Button) view.findViewById(R.id.unStartService);
-        bindService = (Button) view.findViewById(R.id.bindService);
-        unBindService = (Button) view.findViewById(R.id.unBindService);
-        sendSMS = (Button) view.findViewById(R.id.sendSMS);
-
 
         sendSMS.setOnClickListener(listen);
         startService.setOnClickListener(listen);
         bindService.setOnClickListener(listen);
         unStartService.setOnClickListener(listen);
         unBindService.setOnClickListener(listen);
-        send.setOnClickListener(listen);
-        cancel.setOnClickListener(listen);
         intent = new Intent(getContext(), MyService.class);
 
         return view;
@@ -84,29 +74,6 @@ public class SecondFragment extends Fragment {
     View.OnClickListener listen = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.sendNotify:
-                    send();
-                    break;
-                case R.id.cancleNotify:
-                    del();
-                    break;
-                case R.id.startService:
-                    getContext().startService(intent);
-                    break;
-                case R.id.unStartService:
-                    getContext().stopService(intent);
-                    break;
-                case R.id.bindService:
-                    getContext().bindService(intent, conn, Context.BIND_AUTO_CREATE);
-                    break;
-                case R.id.unBindService:
-                    getContext().unbindService(conn);
-                    break;
-                case R.id.sendSMS:
-                    getContext().sendBroadcast(new Intent("TEST_SMS_RECEIVED"));
-                    break;
-            }
         }
     };
 
