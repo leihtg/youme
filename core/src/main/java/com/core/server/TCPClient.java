@@ -82,14 +82,15 @@ public class TCPClient {
         @Override
         public void run() {
             try {
+                InputStream is = client.getInputStream();
                 while (isConnected) {
                     byte[] buf = new byte[BagPacket.getHeadLen()];
-                    receiveByLen(buf);//读取头信息
+                    BagPacket.receiveByLen(is, buf);//读取头信息
 
                     BagPacket head = BagPacket.splitBag(buf);
 
                     byte[] bodyBuf = new byte[head.length];
-                    receiveByLen(bodyBuf);
+                    BagPacket.receiveByLen(is, bodyBuf);
 
                     //封装接收到的数据
                     ReceiveData rd = new ReceiveData();
@@ -129,19 +130,15 @@ public class TCPClient {
             try {
                 while (isConnected) {
                     ReceiveData take = queue.take();
-                    if(client.isClosed()){
+                    if (client.isClosed()) {
                         queue.offer(take);
                         sleep(1000);
                         continue;
                     }
                     synchronized (client) {
-                        byte[] body = take.data.getBytes("UTF8");
-                        byte[] head = BagPacket.AssembleBag(body.length, take.type);
-
                         OutputStream os = client.getOutputStream();
-                        os.write(head);
-                        os.write(body);
-                        os.flush();
+                        byte[] body = take.data.getBytes("UTF8");
+                        BagPacket.sendData(os, body, take.type);
                     }
                 }
             } catch (Exception e) {
@@ -168,8 +165,7 @@ public class TCPClient {
         if (!isConnected) {//如果没有连接，只保留最后一个请求数据
             queue.clear();
         }
-        boolean ret = queue.offer(rd);
-        return ret;
+        return queue.offer(rd);
 //        new Thread() {
 //            @Override
 //            public void run() {
@@ -193,31 +189,6 @@ public class TCPClient {
 //                }
 //            }
 //        }.start();
-    }
-
-    /**
-     * 读取长度
-     *
-     * @param bytes
-     */
-    private void receiveByLen(byte[] bytes) {
-        try {
-            int len = bytes.length, readLen = 0, r;
-            InputStream is = client.getInputStream();
-            while (readLen < len) {
-                r = is.read(bytes, readLen, len - readLen);
-                if (r == -1) {//对方关闭了输出流
-                    break;
-                }
-                readLen += r;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            isConnected = false;
-            Message msg = new Message();
-            msg.what = Contant.CONN_HOST_FAIL;
-            connectHandler.sendMessage(msg);
-        }
     }
 
 }
