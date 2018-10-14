@@ -47,11 +47,11 @@ public class SecondFragment extends Fragment {
         nm = (NotificationManager) view.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
 
-        sendSMS.setOnClickListener(listen);
-        startService.setOnClickListener(listen);
-        bindService.setOnClickListener(listen);
-        unStartService.setOnClickListener(listen);
-        unBindService.setOnClickListener(listen);
+//        sendSMS.setOnClickListener(listen);
+//        startService.setOnClickListener(listen);
+//        bindService.setOnClickListener(listen);
+//        unStartService.setOnClickListener(listen);
+//        unBindService.setOnClickListener(listen);
         intent = new Intent(getContext(), MyService.class);
 
         return view;

@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 23
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId 'com.leihtg.youme'
-        minSdkVersion 28
-        targetSdkVersion 28
+        targetSdkVersion 23
+        minSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
@@ -14,13 +14,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            debuggable true
         }
     }
     productFlavors {
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 

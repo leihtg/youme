@@ -6,6 +6,7 @@ import android.os.Message;
 import com.anser.contant.*;
 import com.anser.model.base.ModelInBase;
 import com.anser.model.base.ModelOutBase;
+import com.core.constant.MessageType;
 import com.google.gson.Gson;
 
 import java.util.UUID;
@@ -27,19 +28,37 @@ public class FunCall<IN extends ModelInBase, OUT extends ModelOutBase> {
 
         String data = gson.toJson(model_in);
 
-        TCPSingleton.getInstance().FuncSend(data, uuid, receiveHandler);
+        boolean flag = TCPSingleton.getInstance().FuncSend(data, uuid, receiveHandler);
+        if (!flag) {
+            Message msg = new Message();
+            msg.what = MessageType.ERR;
+            msg.obj = "发送请求失败";
+            receiveHandler.sendMessage(msg);
+        }
     }
 
     private Handler receiveHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            ReceiveData rd = (ReceiveData) msg.obj;
-            OUT out = gson.fromJson(rd.data, retClass);
-            if (null != FuncResultHandler) {
-                Message sucMsg = new Message();
-                sucMsg.obj = out;
-                FuncResultHandler.sendMessage(sucMsg);
+            switch (msg.what) {
+                case MessageType.SUCC:
+                    ReceiveData rd = (ReceiveData) msg.obj;
+                    OUT out = gson.fromJson(rd.data, retClass);
+                    if (null != FuncResultHandler) {
+                        Message sucMsg = new Message();
+                        sucMsg.obj = out;
+                        FuncResultHandler.sendMessage(sucMsg);
+                    }
+                    break;
+                case MessageType.ERR:
+                    if (null != FuncResultHandler) {
+                        Message m = new Message();
+                        m.copyFrom(msg);
+                        FuncResultHandler.sendMessage(m);
+                    }
+                    break;
             }
+
 
         }
     };

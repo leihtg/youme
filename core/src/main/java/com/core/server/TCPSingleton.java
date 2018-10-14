@@ -63,15 +63,14 @@ public class TCPSingleton {
      */
     public boolean FuncSend(String data, String uuid, Handler receiveMethod) {
         try {
+            handlerMsg.put(uuid, receiveMethod);
             if (null != tcpClient) {
                 if (!tcpClient.isConnected() && !isfindServerAddr) {
                     isfindServerAddr = true;
                     brocastLocalHost();
                 }
-                handlerMsg.put(uuid, receiveMethod);
-                tcpClient.send(DataType.CallFunc, data);
+                return tcpClient.send(DataType.CallFunc, data);
             }
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
