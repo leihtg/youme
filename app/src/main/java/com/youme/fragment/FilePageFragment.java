@@ -17,6 +17,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.anser.contant.MsgType;
 import com.anser.enums.ActionType;
 import com.anser.model.FileModel;
 import com.anser.model.FileQueryModel_in;
@@ -24,7 +25,6 @@ import com.anser.model.FileQueryModel_out;
 import com.core.server.FunCall;
 import com.youme.R;
 import com.youme.adapter.FileListAdapter;
-import com.core.constant.MessageType;
 import com.youme.db.DbHelper;
 import com.youme.view.PullRefreshView;
 
@@ -164,9 +164,9 @@ public class FilePageFragment extends Fragment {
     Handler receiveDataHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MessageType.SUCC:
-                    FileQueryModel_out rd = (FileQueryModel_out) msg.obj;
+            FileQueryModel_out rd = (FileQueryModel_out) msg.obj;
+            switch (rd.msgType) {
+                case MsgType.SUCC:
                     List<FileModel> list = rd.getList();
                     canEnter = true;
                     if (null != list) {
@@ -174,8 +174,8 @@ public class FilePageFragment extends Fragment {
                         dbHelper.saveDb(list, currentPath);
                     }
                     break;
-                case MessageType.ERR:
-                    Toast.makeText(context,String.valueOf(msg.obj),Toast.LENGTH_SHORT).show();
+                case MsgType.ERROR:
+                    Toast.makeText(context,rd.msg,Toast.LENGTH_SHORT).show();
                     break;
             }
             if (pullRefreshView.isRefreshing()) {

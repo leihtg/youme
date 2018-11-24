@@ -90,11 +90,11 @@ public class TCPSingleton {
             public void run() {
                 while (isfindServerAddr) {
                     try {
-                        if (null != host) {
-                            connectServer(InetAddress.getByName(host));
-                            return;
-                        }
-
+//                        if (null != host) {
+//                            connectServer(InetAddress.getByName(host));
+//                            return;
+//                        }
+                        host = "255.255.255.255";
                         //发送受限广播,同一个局域网内可以接收到
                         InetAddress address = InetAddress.getByName(host);
 
