@@ -94,7 +94,7 @@ public class TCPClient {
 
                     //封装接收到的数据
                     ReceiveData rd = new ReceiveData();
-                    rd.type = head.type;
+                    rd.dataType = head.type;
                     rd.data = new String(bodyBuf, "UTF8");
 
                     Message msg = new Message();
@@ -138,7 +138,7 @@ public class TCPClient {
                     synchronized (client) {
                         OutputStream os = client.getOutputStream();
                         byte[] body = take.data.getBytes("UTF8");
-                        BagPacket.sendData(os, body, take.type);
+                        BagPacket.sendData(os, body, take.dataType);
                     }
                 }
             } catch (Exception e) {
@@ -160,7 +160,7 @@ public class TCPClient {
      */
     public boolean send(final int type, final String data) {
         ReceiveData rd = new ReceiveData();
-        rd.type = type;
+        rd.dataType = type;
         rd.data = data;
         if (!isConnected) {//如果没有连接，只保留最后一个请求数据
             queue.clear();

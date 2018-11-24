@@ -17,7 +17,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.anser.enums.MsgType;
+import com.anser.enums.ActionType;
 import com.anser.model.FileModel;
 import com.anser.model.FileQueryModel_in;
 import com.anser.model.FileQueryModel_out;
@@ -96,7 +96,7 @@ public class FilePageFragment extends Fragment {
     private void enterFolder() {
         FileQueryModel_in fi = new FileQueryModel_in();
         fi.setPath(currentPath);
-        fi.setBusType(MsgType.FETCH_DIR);
+        fi.setBusType(ActionType.FETCH_DIR);
         FunCall<FileQueryModel_in, FileQueryModel_out> fc = new FunCall<>();
         fc.FuncResultHandler = receiveDataHandler;
         fc.call(fi, FileQueryModel_out.class);

@@ -6,12 +6,15 @@ import android.os.Message;
 import com.anser.contant.Contant;
 import com.anser.contant.DataType;
 import com.anser.contant.ReceiveData;
+import com.anser.enums.ActionType;
 import com.anser.model.base.ModelOutBase;
 import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,6 +81,8 @@ public class TCPSingleton {
         return false;
     }
 
+    private static String host = "180.168.28.98";
+
     //发送广播
     public void brocastLocalHost() {
         new Thread() {
@@ -85,8 +90,14 @@ public class TCPSingleton {
             public void run() {
                 while (isfindServerAddr) {
                     try {
+                        if (null != host) {
+                            connectServer(InetAddress.getByName(host));
+                            return;
+                        }
+
                         //发送受限广播,同一个局域网内可以接收到
-                        InetAddress address = InetAddress.getByName("255.255.255.255");
+                        InetAddress address = InetAddress.getByName(host);
+
                         byte[] hostMsg = new byte[]{Contant.REQ_HOST_MSG};
                         DatagramPacket packet = new DatagramPacket(hostMsg, hostMsg.length, address, Contant.BROCAST_PORT);
 
@@ -100,7 +111,6 @@ public class TCPSingleton {
                             msg.what = Contant.FIND_HOST_ADDR_TIMEOUT;
                             connHandler.sendMessage(msg);
                             isfindServerAddr = false;
-                            connectServer(InetAddress.getByName("180.168.28.98"));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -154,7 +164,7 @@ public class TCPSingleton {
         @Override
         public void handleMessage(Message msg) {
             ReceiveData rd = (ReceiveData) msg.obj;
-            switch (rd.type) {
+            switch (rd.dataType) {
                 case DataType.HeartBeat:
                     break;
                 case DataType.CallFunc:
