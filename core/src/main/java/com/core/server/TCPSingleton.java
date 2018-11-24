@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -99,6 +100,7 @@ public class TCPSingleton {
                             msg.what = Contant.FIND_HOST_ADDR_TIMEOUT;
                             connHandler.sendMessage(msg);
                             isfindServerAddr = false;
+                            connectServer(InetAddress.getByName("180.168.28.98"));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

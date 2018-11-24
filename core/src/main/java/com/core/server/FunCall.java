@@ -40,13 +40,14 @@ public class FunCall<IN extends ModelInBase, OUT extends ModelOutBase> {
     private Handler receiveHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what) {
+            ReceiveData rd = (ReceiveData) msg.obj;
+            switch (rd.type) {
                 case MessageType.SUCC:
-                    ReceiveData rd = (ReceiveData) msg.obj;
                     OUT out = gson.fromJson(rd.data, retClass);
                     if (null != FuncResultHandler) {
                         Message sucMsg = new Message();
                         sucMsg.obj = out;
+                        sucMsg.what=rd.type;
                         FuncResultHandler.sendMessage(sucMsg);
                     }
                     break;
