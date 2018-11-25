@@ -40,6 +40,7 @@
         <activity android:name="com.youme.activity.NotifyActivity" />
         <activity android:name="com.youme.activity.CustomInfoActivity" />
         <activity android:name="com.youme.activity.AboutSoftWareActivity"/>
+        <activity android:name=".activity.FileSelectActivity"/>
 
         <service
             android:name="com.youme.service.MyService"

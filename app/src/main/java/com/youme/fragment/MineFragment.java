@@ -21,8 +21,11 @@ import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.youme.R;
+import com.youme.activity.FileSelectActivity;
 import com.youme.constant.APPFinal;
 import com.youme.util.ImageUtil;
 import com.youme.view.CircleImageViewCustom;
@@ -51,22 +54,46 @@ public class MineFragment extends Fragment implements View.OnClickListener {
     private Uri imageUri;
     CircleImageViewCustom headIcon;
 
+    Button backUp;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View inflate = inflater.inflate(R.layout.activity_mine, null);
         headIcon = (CircleImageViewCustom) inflate.findViewById(R.id.headIcon);
+        backUp = (Button) inflate.findViewById(R.id.backUp);
+        headIcon.setOnClickListener(this);
+        backUp.setOnClickListener(this);
+
         if (new File(iconPath).exists()) {
             headIcon.setImageBitmap(BitmapFactory.decodeFile(iconPath));
         }
-        headIcon.setOnClickListener(this);
         return inflate;
     }
 
     @Override
     /*弹出选择图片方式，相册中获取和照相*/
     public void onClick(View v) {
-        /*final String[] item = {"相册","拍照"};*/
+        switch (v.getId()) {
+            case R.id.headIcon:
+                selectIcon();
+                break;
+            case R.id.backUp:
+                selectBackup();
+                break;
+        }
+    }
+
+    private final static int REQ_FILE_DIR = 3;
+
+    /*选择备份文件夹*/
+    private void selectBackup() {
+        Intent intent = new Intent(this.getContext(), FileSelectActivity.class);
+        startActivityForResult(intent, REQ_FILE_DIR);
+    }
+
+    /*选择头像*/
+    private void selectIcon() {
         final String[] item = {"相册", "拍照"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("请选择获取相片方式：");
@@ -110,7 +137,6 @@ public class MineFragment extends Fragment implements View.OnClickListener {
             return;
         }
         takePhoto();
-
     }
 
     /*获取权限后的回调*/
@@ -165,6 +191,10 @@ public class MineFragment extends Fragment implements View.OnClickListener {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
+                break;
+            case REQ_FILE_DIR:
+                Toast.makeText(this.getContext(), "ok", Toast.LENGTH_LONG).show();
+                break;
         }
         if (null != bit) {
             try {

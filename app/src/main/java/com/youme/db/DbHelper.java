@@ -9,6 +9,7 @@ import com.anser.model.FileModel;
 import com.youme.constant.APPFinal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -16,6 +17,7 @@ import java.util.List;
  */
 public class DbHelper extends SQLiteOpenHelper {
     final String CREATE_TABLE_SQL = "create table file(_id integer primary key autoincrement,name,length,dir,time,path)";
+    final String AUTO_BAK_FILES = "create table auto_bak_file(_id integer primary key autoincrement,path)";
 
     public DbHelper(Context context) {
         super(context, APPFinal.DB_NAME, null, 1);
@@ -57,9 +59,33 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     }
 
+    public List<String> queryAutoBakPath() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("select * from auto_bak_file", new String[]{});
+        List<String> list = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            String path = cursor.getString(1);
+            list.add(path);
+        }
+        return list;
+    }
+
+    public void saveAutoBakPath(Collection<String> list) {
+        if (null == list || list.isEmpty()) {
+            return;
+        }
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("delete from auto_bak_file");
+        String sql = "insert into auto_bak_file values(null,?)";
+        for (String fm : list) {
+            db.execSQL(sql, new Object[]{fm});
+        }
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_SQL);
+        db.execSQL(AUTO_BAK_FILES);
     }
 
     @Override

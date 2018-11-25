@@ -69,6 +69,7 @@
         <TableRow>
 
             <Button
+                android:id="@+id/backUp"
                 style="@style/tab_btn_style"
                 android:drawableTop="@mipmap/home_01"
                 android:text="手机备份" />
