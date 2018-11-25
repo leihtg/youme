@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.youme.view.CircleImageViewCustom
+            android:id="@+id/headIcon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="15dp"
+            android:src="@mipmap/cjp"
+            app:borderColor="@color/redColor"
+            app:borderWidth="1dp"
+            app:type="circle" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/headIcon"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="朋友"
+                android:textSize="15dp"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/rl"
+                style="?android:progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:max="100"
+                android:progress="15" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1GB/2055GB"
+                    android:textSize="15dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="15dp"
+                    android:text="15.8%" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TableRow>
+
+            <Button
+                style="@style/tab_btn_style"
+                android:drawableTop="@mipmap/home_01"
+                android:text="手机备份" />
+
+            <Button
+                style="@style/tab_btn_style"
+                android:drawableTop="@mipmap/home_01"
+                android:text="回收站" />
+
+            <Button
+                style="@style/tab_btn_style"
+                android:drawableTop="@mipmap/home_01"
+                android:text="我的会员" />
+
+            <Button
+                style="@style/tab_btn_style"
+                android:drawableTop="@mipmap/home_01"
+                android:text="活动中心" />
+        </TableRow>
+
+        <TableRow>
+
+            <Button
+                style="@style/tab_btn_style"
+                android:drawableTop="@mipmap/home_01"
+                android:text="智能硬件" />
+
+            <Button
+                style="@style/tab_btn_style"
+                android:drawableTop="@mipmap/home_01"
+                android:text="找资源" />
+
+            <Button
+                style="@style/tab_btn_style"
+                android:drawableTop="@mipmap/home_01"
+                android:text="离线下载" />
+
+            <Button
+                style="@style/tab_btn_style"
+                android:drawableTop="@mipmap/home_01"
+                android:text="更多功能" />
+        </TableRow>
+    </TableLayout>
+
+</LinearLayout>

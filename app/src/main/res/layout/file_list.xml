@@ -7,8 +7,8 @@
 
     <ImageView
         android:id="@+id/fileIcon"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
         android:layout_centerVertical="true"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="5dp"
@@ -17,9 +17,10 @@
 
     <LinearLayout
         android:id="@+id/detailId"
+
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@id/fileIcon"
+        android:layout_centerVertical="true"
         android:layout_toRightOf="@id/fileIcon"
         android:orientation="vertical">
 
@@ -30,7 +31,7 @@
             android:gravity="top"
             android:text="相册"
             android:textColor="@color/black"
-            android:textSize="16dp" />
+            android:textSize="14dp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -44,22 +45,16 @@
                 android:layout_height="wrap_content"
                 android:paddingRight="5dp"
                 android:text="5.3M"
-                android:textSize="12dp" />
+                android:textSize="10dp" />
 
             <TextView
                 android:id="@+id/createTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="2015-05-08 11:23:53"
-                android:textSize="12dp" />
+                android:textSize="10dp" />
         </LinearLayout>
 
     </LinearLayout>
-
-    <ImageView
-        android:layout_alignParentRight="true"
-        android:src="@drawable/circle"
-        android:layout_width="20dp"
-        android:layout_height="20dp" />
 
 </RelativeLayout>

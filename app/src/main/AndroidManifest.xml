@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- 接收短信权限 -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <!--请求访问相机-->
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"

@@ -6,13 +6,16 @@ import android.os.Environment;
  * app的常量类
  *
  * @author DR
- *         Created by Administrator on 2016/5/16 0016.
+ * Created by Administrator on 2016/5/16 0016.
  */
 public class APPFinal {
 
-    public static final String appDir = Environment.getExternalStorageDirectory().getAbsolutePath()+"/yunPan/";
+    public static final String appDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/yunPan/";
 
-    public static final String dbName=appDir+"/db/file.db3";
+    public static final String dbName = appDir + "/db/file.db3";
+
+    /*头像位置*/
+    public static String iconPath = appDir + "icon/head.jpg";
     /**
      * bug发送地址
      */

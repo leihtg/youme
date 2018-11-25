@@ -1,6 +1,7 @@
 package com.youme.activity;
 
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -14,8 +15,10 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.DragEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -27,12 +30,15 @@ import android.widget.Toast;
 import com.anser.contant.Contant;
 import com.core.server.TCPSingleton;
 import com.youme.R;
+import com.youme.constant.APPFinal;
 import com.youme.fragment.FilePageFragment;
+import com.youme.fragment.MineFragment;
 import com.youme.fragment.SecondFragment;
 import com.youme.fragment.SpeechFragment;
 import com.youme.fragment.StudyFragment;
 import com.youme.view.CircleImageViewCustom;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,9 +55,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private SecondFragment secondFragment;
     //阅读碎片
     private SpeechFragment speechFragment;
-    //study
-    private StudyFragment studyFragment;
-
+    //我的
+    private MineFragment mineFragment;
     //标题栏
     private Toolbar toolbar;
     //标题栏中的标题
@@ -190,8 +195,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             secondFragment = (SecondFragment) fragment;
         } else if (null == speechFragment && fragment instanceof SpeechFragment) {
             speechFragment = (SpeechFragment) fragment;
-        } else if (null == studyFragment && fragment instanceof StudyFragment) {
-            studyFragment = (StudyFragment) fragment;
+        } else if (null == mineFragment && fragment instanceof MineFragment) {
+            mineFragment = (MineFragment) fragment;
         }
 
     }
@@ -202,10 +207,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     public void initListView() {
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        View headerView = navigationView.getHeaderView(0);
+        final CircleImageViewCustom imageView = (CircleImageViewCustom) headerView.findViewById(R.id.userImage);
+        if (new File(APPFinal.iconPath).exists()) {
+            imageView.setImageBitmap(BitmapFactory.decodeFile(APPFinal.iconPath));
+        }
         navigationView.setNavigationItemSelectedListener(this);
 
-        View headerView = navigationView.getHeaderView(0);
-        CircleImageViewCustom imageView = (CircleImageViewCustom) headerView.findViewById(R.id.userImage);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -302,10 +310,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
                 return speechFragment;
             case 3:
-                if (null == studyFragment) {
-                    studyFragment = new StudyFragment();
+                if (null == mineFragment) {
+                    mineFragment = new MineFragment();
                 }
-                return studyFragment;
+                return mineFragment;
         }
 
         return null;
@@ -326,8 +334,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (speechFragment != null) {
             transaction.hide(speechFragment);
         }
-        if (studyFragment != null) {
-            transaction.hide(studyFragment);
+        if (mineFragment != null) {
+            transaction.hide(mineFragment);
         }
     }
 

@@ -30,7 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:drawableTop="@drawable/zhuye"
-            android:text="主页" />
+            android:text="文件" />
 
         <RadioButton
             android:id="@+id/trade"
@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:drawableTop="@drawable/trade"
-            android:text="分享" />
+            android:text="好友" />
 
         <RadioButton
             android:id="@+id/more"
@@ -46,7 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:drawableTop="@drawable/more"
-            android:text="读书" />
+            android:text="传输" />
 
         <RadioButton
             android:id="@+id/study"
@@ -54,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:drawableTop="@drawable/trade"
-            android:text="探索" />
+            android:text="我的" />
 
     </RadioGroup>
 </LinearLayout>

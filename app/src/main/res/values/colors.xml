@@ -18,6 +18,7 @@
     <color name="black">#000000</color>
 
     <color name="priceRedColor">#FF4236</color>
+    <color name="redColor">#df857f</color>
     <color name="lightGray">#B5B5B5</color>
     <color name="colorActionBar">#292929</color>
 
