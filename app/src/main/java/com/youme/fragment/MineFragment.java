@@ -18,6 +18,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +26,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.anser.enums.ActionType;
+import com.anser.model.FileModel;
 import com.anser.model.FileQueryModel_in;
 import com.anser.model.FileQueryModel_out;
 import com.anser.model.FileTransfer_in;
@@ -34,6 +36,7 @@ import com.youme.R;
 import com.youme.activity.FileSelectActivity;
 import com.youme.constant.APPFinal;
 import com.youme.db.DbHelper;
+import com.youme.util.FileUtil;
 import com.youme.util.ImageUtil;
 import com.youme.view.CircleImageViewCustom;
 
@@ -42,6 +45,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,7 +118,7 @@ public class MineFragment extends Fragment implements View.OnClickListener {
     FunCall<FileTransfer_in, FileTransfer_out> fc = new FunCall<>();
 
     private void beginBack() {
-        DbHelper dbHelper = new DbHelper(getContext());
+        final DbHelper dbHelper = new DbHelper(getContext());
         List<String> list = dbHelper.queryAutoBakPath();
         final List<String> fileList = new ArrayList<>();
         for (String dir : list) {
@@ -127,26 +132,51 @@ public class MineFragment extends Fragment implements View.OnClickListener {
                     File f = new File(file);
 
                     FileTransfer_in in = new FileTransfer_in();
-                    in.setPath(file.substring(length));
+                    FileModel model = new FileModel();
+                    in.setModel(model);
+
                     in.setBusType(ActionType.UP_LOAD);
-                    in.setLength(f.length());
+
+                    String path = file.substring(length);
+                    model.setPath(path);
+                    model.setLength(f.length());
+
                     try (FileInputStream fis = new FileInputStream(f)) {
-                        byte[] buf = new byte[1024];
+                        MessageDigest sha = MessageDigest.getInstance("SHA-1");
+
+                        byte[] buf = new byte[2048];
                         int len = 0;
                         int pos = 0;
+
                         while ((len = fis.read(buf)) != -1) {
-                            if (len < 1024) {
-                                in.setBuf(Arrays.copyOf(buf, len));
-                            } else {
-                                in.setBuf(buf);
+                            if (len < 2048) {
+                                buf = Arrays.copyOf(buf, len);
                             }
+                            sha.digest(buf);
+                        }
+                        boolean b = dbHelper.hasUploaded(path, FileUtil.toHex(sha.digest()));
+                        if (b) {
+                            return;
+                        }
+                        fis.close();
+                        FileInputStream fs = new FileInputStream(f);
+                        while ((len = fs.read(buf)) != -1) {
+                            if (len < 2048) {
+                                buf = Arrays.copyOf(buf, len);
+                            }
+                            sha.digest(buf);
+                            in.setBuf(buf);
                             in.setPos(pos);
                             pos += len;
                             fc.call(in, FileTransfer_out.class);
                         }
+
+                        dbHelper.finishUpload(path, FileUtil.toHex(sha.digest()));
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchAlgorithmException e) {
                         e.printStackTrace();
                     }
                 }

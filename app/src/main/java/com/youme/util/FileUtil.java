@@ -13,14 +13,15 @@ public class FileUtil {
     private static final int KB = 1024;
     private static final int MB = KB * 1024;
     private static final int GB = MB * 1024;
-    private static final long TB = (long)GB * 1024;
+    private static final long TB = (long) GB * 1024;
 
-    public static String formatTime(Object date){
+    public static String formatTime(Object date) {
         return sdf.format(date);
     }
 
     /**
      * 获得文件大小的字符形式
+     *
      * @param size
      * @return
      */
@@ -51,5 +52,18 @@ public class FileUtil {
             }
         }
         return R.mipmap.unknow;
+    }
+
+    private static char[] ch = "0123456789abcdef".toCharArray();
+
+    public static String toHex(byte[] buf) {
+        if (null == buf) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (byte b : buf) {
+            sb.append(ch[b & 0x0f]).append(ch[(b & 0xf0) >> 4]);
+        }
+        return sb.toString();
     }
 }

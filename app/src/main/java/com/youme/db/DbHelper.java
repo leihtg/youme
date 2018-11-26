@@ -18,6 +18,7 @@ import java.util.List;
 public class DbHelper extends SQLiteOpenHelper {
     final String CREATE_TABLE_SQL = "create table file(_id integer primary key autoincrement,name,length,dir,time,path)";
     final String AUTO_BAK_FILES = "create table auto_bak_file(_id integer primary key autoincrement,path)";
+    final String UPLOAD_TABLE = "create table upload_file_table(_id integer primary key autoincrement,path,md)";
 
     public DbHelper(Context context) {
         super(context, APPFinal.DB_NAME, null, 1);
@@ -82,10 +83,26 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     }
 
+    public boolean hasUploaded(String path, String md) {
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor cursor = db.rawQuery("select * from upload_file_table where path=? and md=?", new String[]{path, md});
+        if (cursor.moveToNext()) {
+            return true;
+        }
+        return false;
+    }
+
+    public void finishUpload(String path, String md) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("delete from upload_file_table where path=?", new Object[]{path});
+        db.execSQL("insert into upload_file_table values(null,?,?)", new Object[]{path, md});
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_SQL);
         db.execSQL(AUTO_BAK_FILES);
+        db.execSQL(UPLOAD_TABLE);
     }
 
     @Override
