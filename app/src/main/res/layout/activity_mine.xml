@@ -93,9 +93,10 @@
         <TableRow>
 
             <Button
+                android:id="@+id/begin_back"
                 style="@style/tab_btn_style"
                 android:drawableTop="@mipmap/home_01"
-                android:text="智能硬件" />
+                android:text="开始备份" />
 
             <Button
                 style="@style/tab_btn_style"

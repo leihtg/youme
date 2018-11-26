@@ -24,20 +24,38 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.anser.enums.ActionType;
+import com.anser.model.FileQueryModel_in;
+import com.anser.model.FileQueryModel_out;
+import com.anser.model.FileTransfer_in;
+import com.anser.model.FileTransfer_out;
+import com.core.server.FunCall;
 import com.youme.R;
 import com.youme.activity.FileSelectActivity;
 import com.youme.constant.APPFinal;
+import com.youme.db.DbHelper;
 import com.youme.util.ImageUtil;
 import com.youme.view.CircleImageViewCustom;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static android.app.Activity.RESULT_OK;
+import static com.youme.constant.APPFinal.storageDir;
 
 /**
  * Created by leihtg on 2018/11/24 23:06.
@@ -55,6 +73,7 @@ public class MineFragment extends Fragment implements View.OnClickListener {
     CircleImageViewCustom headIcon;
 
     Button backUp;
+    Button begin_back;
 
     @Nullable
     @Override
@@ -62,8 +81,11 @@ public class MineFragment extends Fragment implements View.OnClickListener {
         View inflate = inflater.inflate(R.layout.activity_mine, null);
         headIcon = (CircleImageViewCustom) inflate.findViewById(R.id.headIcon);
         backUp = (Button) inflate.findViewById(R.id.backUp);
+        begin_back = (Button) inflate.findViewById(R.id.begin_back);
+
         headIcon.setOnClickListener(this);
         backUp.setOnClickListener(this);
+        begin_back.setOnClickListener(this);
 
         if (new File(iconPath).exists()) {
             headIcon.setImageBitmap(BitmapFactory.decodeFile(iconPath));
@@ -81,6 +103,68 @@ public class MineFragment extends Fragment implements View.OnClickListener {
             case R.id.backUp:
                 selectBackup();
                 break;
+            case R.id.begin_back:
+                beginBack();
+                break;
+        }
+    }
+
+    private static Executor executor = new ThreadPoolExecutor(0, 2, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000));
+    FunCall<FileTransfer_in, FileTransfer_out> fc = new FunCall<>();
+
+    private void beginBack() {
+        DbHelper dbHelper = new DbHelper(getContext());
+        List<String> list = dbHelper.queryAutoBakPath();
+        final List<String> fileList = new ArrayList<>();
+        for (String dir : list) {
+            scanDir(dir, fileList);
+        }
+        final int length = storageDir.length();
+        for (final String file : fileList) {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    File f = new File(file);
+
+                    FileTransfer_in in = new FileTransfer_in();
+                    in.setPath(file.substring(length));
+                    in.setBusType(ActionType.UP_LOAD);
+                    in.setLength(f.length());
+                    try (FileInputStream fis = new FileInputStream(f)) {
+                        byte[] buf = new byte[1024];
+                        int len = 0;
+                        int pos = 0;
+                        while ((len = fis.read(buf)) != -1) {
+                            if (len < 1024) {
+                                in.setBuf(Arrays.copyOf(buf, len));
+                            } else {
+                                in.setBuf(buf);
+                            }
+                            in.setPos(pos);
+                            pos += len;
+                            fc.call(in, FileTransfer_out.class);
+                        }
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+
+
+    }
+
+    private void scanDir(String dir, List<String> list) {
+        File file = new File(dir);
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            for (File f : files) {
+                scanDir(f.getAbsolutePath(), list);
+            }
+        } else {
+            list.add(file.getAbsolutePath());
         }
     }
 

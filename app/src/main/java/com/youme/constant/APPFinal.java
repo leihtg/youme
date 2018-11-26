@@ -9,8 +9,9 @@ import android.os.Environment;
  * Created by Administrator on 2016/5/16 0016.
  */
 public class APPFinal {
-
-    public static final String appDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/yunPan/";
+    public static final String storageDir = Environment.getExternalStorageDirectory().getAbsolutePath();
+    
+    public static final String appDir = storageDir + "/yunPan/";
 
     public static final String dbName = appDir + "/db/file.db3";
 

@@ -2,6 +2,7 @@ package com.core.server;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import com.anser.contant.Contant;
 import com.anser.contant.DataType;
@@ -14,6 +15,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -82,6 +85,7 @@ public class TCPSingleton {
     }
 
     private static String host = "180.168.28.98";
+    private static boolean err = false;
 
     //发送广播
     public void brocastLocalHost() {
@@ -90,11 +94,18 @@ public class TCPSingleton {
             public void run() {
                 while (isfindServerAddr) {
                     try {
-//                        if (null != host) {
-//                            connectServer(InetAddress.getByName(host));
-//                            return;
-//                        }
-                        host = "255.255.255.255";
+                        if (!err) {
+                            try {
+                                Socket socket = new Socket();
+                                socket.connect(new InetSocketAddress(host, Contant.SERVER_PORT), 3000);
+                                connectServer(InetAddress.getByName(host));
+                                return;
+                            } catch (Exception e) {
+                                err = true;
+                            }
+                        }
+
+                        host = "192.168.0.255";
                         //发送受限广播,同一个局域网内可以接收到
                         InetAddress address = InetAddress.getByName(host);
 

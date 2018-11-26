@@ -56,8 +56,12 @@ public class FileSelectActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void enterDir(String dir) {
+        File file = new File(dir);
+        if (!file.exists()) {
+            return;
+        }
         List<FileModel> list = new ArrayList<>();
-        for (File f : new File(dir).listFiles()) {
+        for (File f : file.listFiles()) {
             if (f.isFile()) {
                 continue;
             }
