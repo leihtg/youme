@@ -122,7 +122,7 @@ public class TCPClient {
         }
     };
 
-    static LinkedBlockingQueue<ReceiveData> queue = new LinkedBlockingQueue<>(100);
+    static LinkedBlockingQueue<ReceiveData> queue = new LinkedBlockingQueue<>(3000);
 
     Thread thread_sendData = new Thread() {
         @Override

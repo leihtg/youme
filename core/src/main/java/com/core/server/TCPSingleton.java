@@ -94,18 +94,18 @@ public class TCPSingleton {
             public void run() {
                 while (isfindServerAddr) {
                     try {
-                        if (!err) {
-                            try {
-                                Socket socket = new Socket();
-                                socket.connect(new InetSocketAddress(host, Contant.SERVER_PORT), 3000);
-                                connectServer(InetAddress.getByName(host));
-                                return;
-                            } catch (Exception e) {
-                                err = true;
-                            }
-                        }
+//                        if (!err) {
+//                            try {
+//                                Socket socket = new Socket();
+//                                socket.connect(new InetSocketAddress(host, Contant.SERVER_PORT), 3000);
+//                                connectServer(InetAddress.getByName(host));
+//                                return;
+//                            } catch (Exception e) {
+//                                err = true;
+//                            }
+//                        }
 
-                        host = "192.168.0.255";
+                        host = "255.255.255.255";
                         //发送受限广播,同一个局域网内可以接收到
                         InetAddress address = InetAddress.getByName(host);
 

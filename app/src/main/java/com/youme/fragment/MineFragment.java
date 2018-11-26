@@ -114,7 +114,7 @@ public class MineFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    private static Executor executor = new ThreadPoolExecutor(0, 2, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000));
+    private static Executor executor = new ThreadPoolExecutor(3, 5, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000));
     FunCall<FileTransfer_in, FileTransfer_out> fc = new FunCall<>();
 
     private void beginBack() {
