@@ -13,10 +13,16 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TabHost;
+import android.widget.ViewFlipper;
 
 import com.youme.R;
 import com.youme.activity.NotifyActivity;
@@ -25,18 +31,15 @@ import com.youme.service.MyService;
 /**
  * Created by Thinkpad on 2017/2/4.
  */
-public class SecondFragment extends Fragment {
+public class SecondFragment extends Fragment implements GestureDetector.OnGestureListener {
     private static final String TAG = SecondFragment.class.toString();
     static final int NOTIFICATION_ID = 0x123;
     NotificationManager nm;
     View view;
 
-    Button startService;
-    Button unStartService;
-    Button bindService;
-    Button unBindService;
-    Button sendSMS;
     Intent intent = null;
+    ViewFlipper view_filpper;
+    TabHost tabHost;
 
     @Nullable
     @Override
@@ -46,15 +49,85 @@ public class SecondFragment extends Fragment {
         //获取系统的NotificationManager服务
         nm = (NotificationManager) view.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-
-//        sendSMS.setOnClickListener(listen);
-//        startService.setOnClickListener(listen);
-//        bindService.setOnClickListener(listen);
-//        unStartService.setOnClickListener(listen);
-//        unBindService.setOnClickListener(listen);
         intent = new Intent(getContext(), MyService.class);
 
+        tabHost = (TabHost) view.findViewById(R.id.tabhost);
+        tabHost.setup();
+
+        tabHost.addTab(tabHost.newTabSpec("tab1").setIndicator("下载列表").setContent(R.id.tab01));
+        tabHost.addTab(tabHost.newTabSpec("tab2").setIndicator("上传列表").setContent(R.id.tab02));
+        tabHost.addTab(tabHost.newTabSpec("tab3").setIndicator("离线下载").setContent(R.id.tab03));
+        tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
+            @Override
+            public void onTabChanged(String tabId) {
+                switch (tabId) {
+                    case "tab1":
+                        break;
+                    case "tab2":
+                        break;
+                    case "tab3":
+                        break;
+                }
+            }
+        });
+
         return view;
+    }
+
+    private View addTextView(int id) {
+        ImageView iv = new ImageView(this.getContext());
+        iv.setImageResource(id);
+        return iv;
+    }
+
+    private GestureDetector detector;
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        if (e1.getX() - e2.getX() > 120) {
+            this.view_filpper.setInAnimation(AnimationUtils.loadAnimation(this.getContext(),
+                    R.anim.push_left_in));
+            this.view_filpper.setOutAnimation(AnimationUtils.loadAnimation(this.getContext(),
+                    R.anim.push_left_out));
+            this.view_filpper.showNext();
+            return true;
+        } else if (e1.getX() - e2.getX() < -120) {
+            this.view_filpper.setInAnimation(AnimationUtils.loadAnimation(this.getContext(),
+                    R.anim.push_right_in));
+            this.view_filpper.setOutAnimation(AnimationUtils.loadAnimation(this.getContext(),
+                    R.anim.push_right_out));
+            this.view_filpper.showPrevious();
+            return true;
+        }
+
+        return false;
+    }
+
+
+    @Override
+    public boolean onDown(MotionEvent e) {
+        System.out.println("e = [" + e + "]");
+        return true;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+
     }
 
     FragmentPagerAdapter pagerAdapter = null;
@@ -85,20 +158,20 @@ public class SecondFragment extends Fragment {
         Notification notify = new Notification.Builder(view.getContext())
                 //设置打开该通知，该通知自动消失
                 .setAutoCancel(true)
-                        //设置显示在状态栏的通知提示信息
+                //设置显示在状态栏的通知提示信息
                 .setTicker("有新消息")
-                        //设置通知的图标
+                //设置通知的图标
                 .setSmallIcon(R.drawable.cjp)
-                        //设置通知内容的标题
+                //设置通知内容的标题
                 .setContentTitle("一条新通知")
-                        //设置通知内容
+                //设置通知内容
                 .setContentText("恭喜您,您加薪了,工资增加100%")
-                        //设置使用系统默认的声音,默认LED灯
+                //设置使用系统默认的声音,默认LED灯
                 .setDefaults(Notification.DEFAULT_SOUND)
-                        //| Notification.DEFAULT_LIGHTS)
-                        //设置通知自定义声音
-                        //.setSound("msg")
-                        //设置通知将要启动程序的Intent
+                //| Notification.DEFAULT_LIGHTS)
+                //设置通知自定义声音
+                //.setSound("msg")
+                //设置通知将要启动程序的Intent
                 .setContentIntent(pi)
                 .build();
 
