@@ -36,6 +36,7 @@ import com.youme.R;
 import com.youme.activity.FileSelectActivity;
 import com.youme.constant.APPFinal;
 import com.youme.db.DbHelper;
+import com.youme.service.FileTransferService;
 import com.youme.util.FileUtil;
 import com.youme.util.ImageUtil;
 import com.youme.view.CircleImageViewCustom;
@@ -109,94 +110,12 @@ public class MineFragment extends Fragment implements View.OnClickListener {
                 selectBackup();
                 break;
             case R.id.begin_back:
-                beginBack();
+                Intent service = new Intent(getContext(), FileTransferService.class);
+                getActivity().startService(service);
                 break;
         }
     }
 
-    private static Executor executor = new ThreadPoolExecutor(3, 5, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000));
-    FunCall<FileTransfer_in, FileTransfer_out> fc = new FunCall<>();
-
-    private void beginBack() {
-        final DbHelper dbHelper = new DbHelper(getContext());
-        List<String> list = dbHelper.queryAutoBakPath();
-        final List<String> fileList = new ArrayList<>();
-        for (String dir : list) {
-            scanDir(dir, fileList);
-        }
-        final int length = storageDir.length();
-        for (final String file : fileList) {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    File f = new File(file);
-
-                    FileTransfer_in in = new FileTransfer_in();
-                    FileModel model = new FileModel();
-                    in.setModel(model);
-
-                    in.setBusType(ActionType.UP_LOAD);
-
-                    String path = file.substring(length);
-                    model.setPath(path);
-                    model.setLength(f.length());
-
-                    try (FileInputStream fis = new FileInputStream(f)) {
-                        MessageDigest sha = MessageDigest.getInstance("SHA-1");
-
-                        byte[] buf = new byte[2048];
-                        int len = 0;
-                        int pos = 0;
-
-                        while ((len = fis.read(buf)) != -1) {
-                            if (len < 2048) {
-                                buf = Arrays.copyOf(buf, len);
-                            }
-                            sha.digest(buf);
-                        }
-                        boolean b = dbHelper.hasUploaded(path, FileUtil.toHex(sha.digest()));
-                        if (b) {
-                            return;
-                        }
-                        fis.close();
-                        FileInputStream fs = new FileInputStream(f);
-                        while ((len = fs.read(buf)) != -1) {
-                            if (len < 2048) {
-                                buf = Arrays.copyOf(buf, len);
-                            }
-                            sha.digest(buf);
-                            in.setBuf(buf);
-                            in.setPos(pos);
-                            pos += len;
-                            fc.call(in, FileTransfer_out.class);
-                        }
-
-                        dbHelper.finishUpload(path, FileUtil.toHex(sha.digest()));
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
-
-
-    }
-
-    private void scanDir(String dir, List<String> list) {
-        File file = new File(dir);
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            for (File f : files) {
-                scanDir(f.getAbsolutePath(), list);
-            }
-        } else {
-            list.add(file.getAbsolutePath());
-        }
-    }
 
     private final static int REQ_FILE_DIR = 3;
 

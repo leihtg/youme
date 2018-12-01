@@ -3,7 +3,7 @@
     package="com.youme">
 
     <!-- 在SD卡中创建与删除文件权限 -->
-    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <!--<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />-->
     <!-- 向SD卡写入数据权限 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- 访问网络权限 -->
@@ -39,13 +39,14 @@
 
         <activity android:name="com.youme.activity.NotifyActivity" />
         <activity android:name="com.youme.activity.CustomInfoActivity" />
-        <activity android:name="com.youme.activity.AboutSoftWareActivity"/>
-        <activity android:name=".activity.FileSelectActivity"/>
+        <activity android:name="com.youme.activity.AboutSoftWareActivity" />
+        <activity android:name=".activity.FileSelectActivity" />
 
         <service
             android:name="com.youme.service.MyService"
             android:enabled="true"
             android:exported="true" />
+        <service android:name=".service.FileTransferService" />
 
         <receiver
             android:name="com.youme.receiver.SmsReceiver"
