@@ -3,6 +3,7 @@ package com.youme.fragment;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,21 +25,15 @@ import com.anser.enums.ActionType;
 import com.anser.model.FileModel;
 import com.anser.model.FileQueryModel_in;
 import com.anser.model.FileQueryModel_out;
-import com.anser.model.FileTransfer_in;
-import com.anser.model.FileTransfer_out;
 import com.core.server.FunCall;
 import com.youme.R;
 import com.youme.adapter.FileListAdapter;
-import com.youme.constant.APPFinal;
 import com.youme.db.DbHelper;
+import com.youme.service.FileTransferService;
 import com.youme.view.PullRefreshView;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 云盘碎片
@@ -129,12 +124,13 @@ public class FilePageFragment extends Fragment {
                     inflateListView(list);
                 }
             } else if (!fm.isDir()) {
-                selectOption(path);
+                fm.setPath(path);
+                selectOption(fm);
             }
         }
     };
 
-    private void selectOption(final String path) {
+    private void selectOption(final FileModel fm) {
         final String[] item = {"下载"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("请选择方式：");
@@ -144,7 +140,10 @@ public class FilePageFragment extends Fragment {
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case 0:
-                        downloadFile(path, 0);
+                        Intent ser = new Intent(getContext(), FileTransferService.class);
+                        ser.putExtra("type", ActionType.DOWN_LOAD);
+                        ser.putExtra("model", fm);
+                        getContext().startService(ser);
                         break;
                 }
             }
@@ -152,20 +151,6 @@ public class FilePageFragment extends Fragment {
 
         });
         builder.create().show();
-    }
-
-    private void downloadFile(String path, long pos) {
-        FileTransfer_in in = new FileTransfer_in();
-        FileModel model = new FileModel();
-        model.setPath(path);
-
-        in.setModel(model);
-        in.setPos(pos);
-        in.setBusType(ActionType.DOWN_LOAD);
-
-        FunCall<FileTransfer_in, FileTransfer_out> fc = new FunCall<>();
-        fc.FuncResultHandler = handler;
-        fc.call(in, FileTransfer_out.class);
     }
 
     //加载弹出框in
@@ -207,50 +192,6 @@ public class FilePageFragment extends Fragment {
         TextView tv = (TextView) view.findViewById(R.id.currentPath);
         tv.setText("当前路径:" + currentPath);
     }
-
-    static ConcurrentHashMap<String, RandomAccessFile> map = new ConcurrentHashMap<>();
-
-    Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            FileTransfer_out rd = (FileTransfer_out) msg.obj;
-            switch (rd.msgType) {
-                case MsgType.SUCC:
-                    try {
-                        FileModel model = rd.getModel();
-
-                        String name = model.getName();
-                        RandomAccessFile rw = map.get(name);
-                        if (null == rw) {
-                            File file = new File(APPFinal.appDir, name);
-                            rw = new RandomAccessFile(file, "rw");
-                            rw.setLength(model.getLength());
-                            map.put(name, rw);
-                        }
-                        rw.seek(rd.getPos());
-                        rw.write(rd.getBuf());
-                        long pos = rd.getPos() + rd.getBuf().length;
-                        if (pos == model.getLength()) {
-                            rw.close();
-                            map.remove(name);
-                            File file = new File(APPFinal.appDir, name);
-                            file.setLastModified(model.getLastModified());
-                            Toast.makeText(context, new File(APPFinal.appDir, name).getAbsolutePath() + ",下载完成", Toast.LENGTH_LONG).show();
-                        } else {
-                            downloadFile(model.getPath(), pos);
-                        }
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    break;
-                case MsgType.ERROR:
-                    Toast.makeText(context, rd.msg, Toast.LENGTH_SHORT).show();
-                    break;
-            }
-        }
-    };
 
     Handler receiveDataHandler = new Handler() {
         @Override

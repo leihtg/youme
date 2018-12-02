@@ -55,25 +55,24 @@ public class FileSelectActivity extends AppCompatActivity implements View.OnClic
         enterDir(path);
     }
 
-    private void enterDir(String dir) {
+    private boolean enterDir(String dir) {
         File file = new File(dir);
-        if (!file.exists()) {
-            return;
+        if (!file.exists() || file.isFile()) {
+            return false;
         }
         List<FileModel> list = new ArrayList<>();
         for (File f : file.listFiles()) {
-            if (f.isFile()) {
-                continue;
-            }
             FileModel m = new FileModel();
-            m.setDir(true);
+            m.setDir(f.isDirectory());
             m.setName(f.getName());
             m.setPath(f.getAbsolutePath());
+            m.setLength(f.length());
             m.setLastModified(f.lastModified());
 
             list.add(m);
         }
         adapter.refresh(list);
+        return true;
     }
 
     AdapterView.OnItemClickListener listener = new AdapterView.OnItemClickListener() {
@@ -81,8 +80,10 @@ public class FileSelectActivity extends AppCompatActivity implements View.OnClic
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Object tag = view.getTag();
             if (null != tag) {
-                stack.push(tag.toString());//第一个
-                enterDir(tag.toString());
+                boolean b = enterDir(tag.toString());
+                if (b) {
+                    stack.push(tag.toString());//第一个
+                }
             }
         }
     };
@@ -106,7 +107,7 @@ public class FileSelectActivity extends AppCompatActivity implements View.OnClic
 
     @Override
     public void onBackPressed() {
-        if (stack.isEmpty()) {
+        if (stack.empty()) {
             super.onBackPressed();
         } else {
             String pop = stack.pop();

@@ -41,8 +41,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Created by Thinkpad on 2017/2/4.
  */
-public class SecondFragment extends Fragment implements GestureDetector.OnGestureListener {
-    private static final String TAG = SecondFragment.class.toString();
+public class TransferFragment extends Fragment implements GestureDetector.OnGestureListener {
+    private static final String TAG = TransferFragment.class.toString();
     static final int NOTIFICATION_ID = 0x123;
     NotificationManager nm;
     View view;
@@ -83,7 +83,6 @@ public class SecondFragment extends Fragment implements GestureDetector.OnGestur
         public void handleMessage(Message msg) {
             Data data = (Data) msg.obj;
             replaceByName(uploads, data);
-//            adapter01.refresh(uploads);
             adapter01.notifyDataSetChanged();
         }
     };
@@ -93,7 +92,6 @@ public class SecondFragment extends Fragment implements GestureDetector.OnGestur
         public void handleMessage(Message msg) {
             Data data = (Data) msg.obj;
             replaceByName(downLoads, data);
-//            adapter01.refresh(uploads);
             adapter02.notifyDataSetChanged();
         }
     };
@@ -139,6 +137,7 @@ public class SecondFragment extends Fragment implements GestureDetector.OnGestur
         String name = model.getName();
         for (int i = 0; i < fts.size(); i++) {
             FileTransfer f = fts.get(i);
+            f.setFlags(flag);
             if (name.equals(f.getName())) {
                 if (over) {
                     fts.remove(i);
@@ -173,8 +172,8 @@ public class SecondFragment extends Fragment implements GestureDetector.OnGestur
         tabHost = (TabHost) view.findViewById(R.id.tabhost);
         tabHost.setup();
 
-        tabHost.addTab(tabHost.newTabSpec("tab1").setIndicator("下载列表").setContent(R.id.tab01));
-        tabHost.addTab(tabHost.newTabSpec("tab2").setIndicator("上传列表").setContent(R.id.tab02));
+        tabHost.addTab(tabHost.newTabSpec("tab1").setIndicator("上传列表").setContent(R.id.tab01));
+        tabHost.addTab(tabHost.newTabSpec("tab2").setIndicator("下载列表").setContent(R.id.tab02));
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {

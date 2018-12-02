@@ -1,8 +1,6 @@
 package com.youme.entity;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -29,6 +27,10 @@ public class FileTransfer {
                     Iterator<FileTransfer> it = list.keySet().iterator();
                     while (it.hasNext()) {
                         FileTransfer ft = it.next();
+                        if (ft.getFlags() == FileTransferType.OVER) {
+                            it.remove();
+                            continue;
+                        }
                         ft.perSecondLen = (int) (ft.pos - ft.prePos);
                         ft.prePos = ft.pos;
                     }
@@ -42,7 +44,7 @@ public class FileTransfer {
     private static boolean isStart = false;
 
     public FileTransfer() {
-        list.put(this,"");
+        list.put(this, "");
         if (!isStart) {
             isStart = true;
             thread.start();

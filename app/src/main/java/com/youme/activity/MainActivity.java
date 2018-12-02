@@ -20,10 +20,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.DragEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -38,9 +36,8 @@ import com.youme.R;
 import com.youme.constant.APPFinal;
 import com.youme.fragment.FilePageFragment;
 import com.youme.fragment.MineFragment;
-import com.youme.fragment.SecondFragment;
+import com.youme.fragment.TransferFragment;
 import com.youme.fragment.SpeechFragment;
-import com.youme.fragment.StudyFragment;
 import com.youme.view.CircleImageViewCustom;
 
 import java.io.File;
@@ -56,8 +53,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     FragmentPagerAdapter pagerAdapter;
     //云盘碎片
     private FilePageFragment filePageFragment;
-
-    private SecondFragment secondFragment;
+    //文件传输
+    private TransferFragment transferFrament;
     //阅读碎片
     private SpeechFragment speechFragment;
     //我的
@@ -215,8 +212,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onAttachFragment(fragment);
         if (null == filePageFragment && fragment instanceof FilePageFragment) {
             filePageFragment = (FilePageFragment) fragment;
-        } else if (null == secondFragment && fragment instanceof SecondFragment) {
-            secondFragment = (SecondFragment) fragment;
+        } else if (null == transferFrament && fragment instanceof TransferFragment) {
+            transferFrament = (TransferFragment) fragment;
         } else if (null == speechFragment && fragment instanceof SpeechFragment) {
             speechFragment = (SpeechFragment) fragment;
         } else if (null == mineFragment && fragment instanceof MineFragment) {
@@ -324,15 +321,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
                 return filePageFragment;
             case 1:
-                if (null == secondFragment) {
-                    secondFragment = new SecondFragment();
-                }
-                return secondFragment;
-            case 2:
                 if (null == speechFragment) {
                     speechFragment = new SpeechFragment();
                 }
                 return speechFragment;
+            case 2:
+                if (null == transferFrament) {
+                    transferFrament = new TransferFragment();
+                }
+                return transferFrament;
             case 3:
                 if (null == mineFragment) {
                     mineFragment = new MineFragment();
@@ -352,8 +349,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (filePageFragment != null) {
             transaction.hide(filePageFragment);
         }
-        if (secondFragment != null) {
-            transaction.hide(secondFragment);
+        if (transferFrament != null) {
+            transaction.hide(transferFrament);
         }
         if (speechFragment != null) {
             transaction.hide(speechFragment);

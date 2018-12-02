@@ -5,27 +5,29 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
+import com.anser.contant.MsgType;
 import com.anser.enums.ActionType;
 import com.anser.model.FileModel;
 import com.anser.model.FileTransfer_in;
 import com.anser.model.FileTransfer_out;
 import com.core.server.FunCall;
+import com.youme.constant.APPFinal;
 import com.youme.db.DbHelper;
 import com.youme.entity.FileTransferType;
-import com.youme.util.FileUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -40,7 +42,6 @@ import static com.youme.constant.APPFinal.storageDir;
 public class FileTransferService extends Service {
     private static ExecutorService executor = new ThreadPoolExecutor(2, 3, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000));
     private static ExecutorService handle = Executors.newSingleThreadExecutor();
-    private boolean isStart = false;
 
     @Nullable
     @Override
@@ -48,30 +49,99 @@ public class FileTransferService extends Service {
         return new FileBinder();
     }
 
+    FunCall<FileTransfer_in, FileTransfer_out> downFun = new FunCall<>();
 
     @Override
     public void onCreate() {
+        downFun.FuncResultHandler = handler;
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!isStart) {
-            handle.execute(new Runnable() {
-                @Override
-                public void run() {
-                    beginBack();
-                }
-            });
+        ActionType type = (ActionType) intent.getSerializableExtra("type");
+        switch (type) {
+            case UP_LOAD:
+                handle.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        beginBack();
+                    }
+                });
+                break;
+            case DOWN_LOAD:
+                FileModel model = (FileModel) intent.getSerializableExtra("model");
+                broast(model, 0, ActionType.DOWN_LOAD, FileTransferType.WAITDOWNLOAD);
+                downloadFile(model, 0);
+                break;
+
+
         }
         return super.onStartCommand(intent, flags, startId);
     }
+
+    private void downloadFile(FileModel model, long pos) {
+        FileTransfer_in in = new FileTransfer_in();
+
+        in.setModel(model);
+        in.setPos(pos);
+        in.setBusType(ActionType.DOWN_LOAD);
+
+        broast(model, pos, ActionType.DOWN_LOAD, FileTransferType.DOWNLOADING);
+
+        downFun.call(in, FileTransfer_out.class);
+    }
+
+
+    static ConcurrentHashMap<String, RandomAccessFile> map = new ConcurrentHashMap<>();
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            FileTransfer_out rd = (FileTransfer_out) msg.obj;
+            switch (rd.msgType) {
+                case MsgType.SUCC:
+                    try {
+                        FileModel model = rd.getModel();
+
+                        String name = model.getName();
+                        RandomAccessFile rw = map.get(name);
+                        if (null == rw) {
+                            File file = new File(APPFinal.appDir, name);
+                            rw = new RandomAccessFile(file, "rw");
+                            rw.setLength(model.getLength());
+                            map.put(name, rw);
+                        }
+                        rw.seek(rd.getPos());
+                        rw.write(rd.getBuf());
+                        long pos = rd.getPos() + rd.getBuf().length;
+
+                        if (pos == model.getLength()) {
+                            rw.close();
+                            map.remove(name);
+                            File file = new File(APPFinal.appDir, name);
+                            file.setLastModified(model.getLastModified());
+                            broast(model, pos, ActionType.DOWN_LOAD, FileTransferType.OVER);
+                            Toast.makeText(getApplicationContext(), new File(APPFinal.appDir, name).getAbsolutePath() + ",下载完成", Toast.LENGTH_LONG).show();
+                        } else {
+                            downloadFile(model, pos);
+                        }
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case MsgType.ERROR:
+                    Toast.makeText(getApplicationContext(), rd.msg, Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
 
     FunCall<FileTransfer_in, FileTransfer_out> fc = new FunCall<>();
     final DbHelper dbHelper = new DbHelper(this);
 
     private void beginBack() {
-        isStart = true;
         List<String> list = dbHelper.queryAutoBakPath();
         for (String dir : list) {
             scanDir(dir);
@@ -133,6 +203,7 @@ public class FileTransferService extends Service {
                 broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.OVER);
                 return;
             }
+            long start = System.currentTimeMillis(), end;
             while ((len = fis.read(buf)) != -1) {
                 if (len < 2048) {
                     buf = Arrays.copyOf(buf, len);
@@ -141,7 +212,10 @@ public class FileTransferService extends Service {
                 in.setPos(pos);
                 pos += len;
                 fc.call(in, FileTransfer_out.class);
-                broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.UPLOADING);
+                if ((end = System.currentTimeMillis()) - start >= 1000) {//每秒发送一次
+                    broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.UPLOADING);
+                    start = end;
+                }
             }
             dbHelper.finishUpload(path, path);
             broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.OVER);
@@ -152,10 +226,15 @@ public class FileTransferService extends Service {
         }
     }
 
-    private void broast(FileModel model, long pos, ActionType type, FileTransferType flag) {
-        for (FileBinderCallback back : callbacks) {
-            back.status(model, pos, type, flag);
-        }
+    private void broast(final FileModel model, final long pos, final ActionType type, final FileTransferType flag) {
+        handle.execute(new Runnable() {
+            @Override
+            public void run() {
+                for (FileBinderCallback back : callbacks) {
+                    back.status(model, pos, type, flag);
+                }
+            }
+        });
     }
 
     public class FileBinder extends Binder {

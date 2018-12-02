@@ -91,8 +91,11 @@ public class FileTransferListAdapter extends BaseAdapter {
 
         switch (ft.getFlags()) {
             case UPLOADING:
+            case DOWNLOADING:
                 filestatus.setText(FileUtil.getSize(ft.getPerSecondLen()) + "/s");
                 break;
+
+
         }
     }
 
