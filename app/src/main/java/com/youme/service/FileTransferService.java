@@ -19,6 +19,7 @@ import com.youme.constant.APPFinal;
 import com.youme.db.DbHelper;
 import com.youme.entity.FileTransferType;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,10 +28,12 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -40,8 +43,10 @@ import static com.youme.constant.APPFinal.storageDir;
  * Created by leihtg on 2018/11/30 22:25.
  */
 public class FileTransferService extends Service {
-    private static ExecutorService executor = new ThreadPoolExecutor(2, 3, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000));
-    private static ExecutorService handle = Executors.newSingleThreadExecutor();
+    private static final int QUE_SIZE = 1000;
+    private static ExecutorService executor = new ThreadPoolExecutor(2, 3, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(QUE_SIZE));
+    private static ExecutorService handle = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(200));
+    private static ExecutorService viewHandle = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(200));
 
     @Nullable
     @Override
@@ -162,7 +167,19 @@ public class FileTransferService extends Service {
         }
     }
 
-    private void addToExec(final File f, final int length) {
+    private synchronized void addToExec(final File f, final int length) {
+        while (true) {
+            BlockingQueue<Runnable> queue = ((ThreadPoolExecutor) executor).getQueue();
+            if (null != queue && queue.size() == QUE_SIZE) {
+                try {
+                    wait(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                continue;
+            }
+            break;
+        }
         final FileModel model = new FileModel();
         String file = f.getAbsolutePath();
         String path = file.substring(length);
@@ -192,7 +209,7 @@ public class FileTransferService extends Service {
 
     private void sendFile(FileTransfer_in in, File f) {
         try (FileInputStream fis = new FileInputStream(f)) {
-
+            BufferedInputStream bis = new BufferedInputStream(fis);
             byte[] buf = new byte[2048];
             int len = 0;
             int pos = 0;
@@ -204,7 +221,7 @@ public class FileTransferService extends Service {
                 return;
             }
             long start = System.currentTimeMillis(), end;
-            while ((len = fis.read(buf)) != -1) {
+            while ((len = bis.read(buf)) != -1) {
                 if (len < 2048) {
                     buf = Arrays.copyOf(buf, len);
                 }
@@ -219,6 +236,7 @@ public class FileTransferService extends Service {
             }
             dbHelper.finishUpload(path, path);
             broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.OVER);
+            bis.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -227,7 +245,7 @@ public class FileTransferService extends Service {
     }
 
     private void broast(final FileModel model, final long pos, final ActionType type, final FileTransferType flag) {
-        handle.execute(new Runnable() {
+        viewHandle.execute(new Runnable() {
             @Override
             public void run() {
                 for (FileBinderCallback back : callbacks) {

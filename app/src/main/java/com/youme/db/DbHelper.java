@@ -45,6 +45,7 @@ public class DbHelper extends SQLiteOpenHelper {
             }
             list.add(fm);
         }
+        cursor.close();
         return list;
     }
 
@@ -68,6 +69,7 @@ public class DbHelper extends SQLiteOpenHelper {
             String path = cursor.getString(1);
             list.add(path);
         }
+        cursor.close();
         return list;
     }
 
@@ -86,8 +88,12 @@ public class DbHelper extends SQLiteOpenHelper {
     public boolean hasUploaded(String path, String md) {
         SQLiteDatabase db = getWritableDatabase();
         Cursor cursor = db.rawQuery("select * from upload_file_table where path=? and md=?", new String[]{path, md});
-        if (cursor.moveToNext()) {
-            return true;
+        try {
+            if (cursor.moveToNext()) {
+                return true;
+            }
+        } finally {
+            cursor.close();
         }
         return false;
     }
