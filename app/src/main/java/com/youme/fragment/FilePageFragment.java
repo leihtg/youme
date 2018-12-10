@@ -1,5 +1,6 @@
 package com.youme.fragment;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -103,7 +104,7 @@ public class FilePageFragment extends Fragment {
         fi.setPath(currentPath);
         fi.setBusType(ActionType.FETCH_DIR);
         FunCall<FileQueryModel_in, FileQueryModel_out> fc = new FunCall<>();
-        fc.FuncResultHandler = receiveDataHandler;
+        fc.setFuncResultHandler(receiveDataHandler);
         fc.call(fi, FileQueryModel_out.class);
     }
 
@@ -193,10 +194,12 @@ public class FilePageFragment extends Fragment {
         tv.setText("当前路径:" + currentPath);
     }
 
+    @SuppressLint("HandlerLeak")
     Handler receiveDataHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             FileQueryModel_out rd = (FileQueryModel_out) msg.obj;
+            boolean ret = false;
             switch (rd.msgType) {
                 case MsgType.SUCC:
                     List<FileModel> list = rd.getList();
@@ -205,13 +208,15 @@ public class FilePageFragment extends Fragment {
                         inflateListView(list);
                         dbHelper.saveDb(list, currentPath);
                     }
+                    ret=true;
                     break;
                 case MsgType.ERROR:
                     Toast.makeText(context, rd.msg, Toast.LENGTH_SHORT).show();
+                    ret=false;
                     break;
             }
             if (pullRefreshView.isRefreshing()) {
-                pullRefreshView.finishRefresh();//刷新成功
+                pullRefreshView.finishRefresh(ret);//刷新成功
             }
 
         }

@@ -11,5 +11,6 @@
     <string name="pullRefresh_release">释放立刻刷新</string>
     <string name="pullRefresh_refreshing">正在刷新...</string>
     <string name="pullRefresh_success">刷新成功</string>
+    <string name="pullRefresh_fail">刷新失败</string>
 
 </resources>

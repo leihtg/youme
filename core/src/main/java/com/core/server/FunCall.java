@@ -1,5 +1,6 @@
 package com.core.server;
 
+import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Message;
 
@@ -17,8 +18,12 @@ import java.util.UUID;
 
 public class FunCall<IN extends ModelInBase, OUT extends ModelOutBase> {
     private static Gson gson = new Gson();
-    public Handler FuncResultHandler;
+    private Handler FuncResultHandler;
     private Class<OUT> retClass;//返回数据的类型
+
+    public void setFuncResultHandler(Handler funcResultHandler) {
+        FuncResultHandler = funcResultHandler;
+    }
 
     public void call(IN model_in, Class<OUT> retClass) {
         this.retClass = retClass;
@@ -44,6 +49,7 @@ public class FunCall<IN extends ModelInBase, OUT extends ModelOutBase> {
         }
     }
 
+    @SuppressLint("HandlerLeak")
     private Handler receiveHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {

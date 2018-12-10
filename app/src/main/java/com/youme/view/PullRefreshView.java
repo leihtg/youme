@@ -1,8 +1,11 @@
 package com.youme.view;
 
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -18,6 +21,7 @@ import android.widget.ListView;
 import android.widget.Scroller;
 import android.widget.TextView;
 
+import com.android.internal.content.NativeLibraryHelper;
 import com.youme.R;
 import com.youme.constant.APPFinal;
 import com.youme.util.ScreenUtils;
@@ -304,21 +308,36 @@ public class PullRefreshView extends LinearLayout {
     /**
      * 刷新结束
      */
-    public void finishRefresh() {
-        isRefreshing = false;
-        tv_refreshState.setText(R.string.pullRefresh_success);
-        image_loadding.setVisibility(View.GONE);
-
-        String timeStr = "上次更新时间: " + sdf.format(new Date());
-        shareState.edit().putString("refreshTime", timeStr).commit();
-        tv_refreshTime.setText(timeStr);
-
-        LayoutParams lp = (LayoutParams) this.refreshView.getLayoutParams();
-        int startY = lp.topMargin;
-
-        scroller.startScroll(0, startY, 0, refreshTop);
-        invalidate();
+    public void finishRefresh(boolean ret) {
+        if (ret) {
+            tv_refreshState.setText(R.string.pullRefresh_success);
+            String timeStr = "上次更新时间: " + sdf.format(new Date());
+            tv_refreshTime.setText(timeStr);
+            shareState.edit().putString("refreshTime", timeStr).commit();
+        } else {
+            tv_refreshState.setText(R.string.pullRefresh_fail);
+        }
+        Message msg = new Message();
+        msg.obj = ret;
+        handler.sendMessageDelayed(msg, 1000);
     }
+
+    @SuppressLint("HandlerLeak")
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            isRefreshing = false;
+
+            image_loadding.setVisibility(View.GONE);
+
+            LayoutParams lp = (LayoutParams) refreshView.getLayoutParams();
+            int startY = lp.topMargin;
+
+            scroller.startScroll(0, startY, 0, refreshTop);
+            invalidate();
+
+        }
+    };
 
     /**
      * 直接进入刷新状态

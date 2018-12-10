@@ -1,5 +1,6 @@
 package com.youme.service;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -31,9 +32,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -58,7 +57,7 @@ public class FileTransferService extends Service {
 
     @Override
     public void onCreate() {
-        downFun.FuncResultHandler = handler;
+        downFun.setFuncResultHandler(handler);
         super.onCreate();
     }
 
@@ -99,7 +98,8 @@ public class FileTransferService extends Service {
 
 
     static ConcurrentHashMap<String, RandomAccessFile> map = new ConcurrentHashMap<>();
-    Handler handler = new Handler() {
+    @SuppressLint("HandlerLeak")
+    final Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             FileTransfer_out rd = (FileTransfer_out) msg.obj;
@@ -130,8 +130,6 @@ public class FileTransferService extends Service {
                         } else {
                             downloadFile(model, pos);
                         }
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -215,7 +213,7 @@ public class FileTransferService extends Service {
             int pos = 0;
 
             String path = f.getAbsolutePath();
-            boolean b = dbHelper.hasUploaded(path, path);
+            boolean b = dbHelper.hasUploaded(path);
             if (b) {
                 broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.OVER);
                 return;
@@ -234,7 +232,7 @@ public class FileTransferService extends Service {
                     start = end;
                 }
             }
-            dbHelper.finishUpload(path, path);
+            dbHelper.finishUpload(path);
             broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.OVER);
             bis.close();
         } catch (FileNotFoundException e) {
