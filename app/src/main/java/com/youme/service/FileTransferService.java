@@ -10,12 +10,17 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import com.anser.contant.Contant;
 import com.anser.contant.MsgType;
 import com.anser.enums.ActionType;
 import com.anser.model.FileModel;
 import com.anser.model.FileTransfer_in;
 import com.anser.model.FileTransfer_out;
+import com.anser.util.BagPacket;
+import com.anser.util.BitConvert;
 import com.core.server.FunCall;
+import com.core.server.TCPSingleton;
+import com.google.gson.Gson;
 import com.youme.constant.APPFinal;
 import com.youme.db.DbHelper;
 import com.youme.entity.FileTransferType;
@@ -25,16 +30,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static com.youme.constant.APPFinal.storageDir;
 
@@ -66,12 +69,7 @@ public class FileTransferService extends Service {
         ActionType type = (ActionType) intent.getSerializableExtra("type");
         switch (type) {
             case UP_LOAD:
-                handle.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        beginBack();
-                    }
-                });
+                doUpload();
                 break;
             case DOWN_LOAD:
                 FileModel model = (FileModel) intent.getSerializableExtra("model");
@@ -141,8 +139,62 @@ public class FileTransferService extends Service {
         }
     };
 
-    FunCall<FileTransfer_in, FileTransfer_out> fc = new FunCall<>();
     final DbHelper dbHelper = new DbHelper(this);
+
+    /**
+     * 上传
+     */
+    private void doUpload() {
+        handle.execute(new Runnable() {
+            @Override
+            public void run() {
+                beginBack();
+            }
+        });
+        if (!uploadFile.isAlive()) {
+            uploadFile.start();
+        }
+    }
+
+    int length = storageDir.length();
+    Gson gson = new Gson();
+    Thread uploadFile = new Thread() {
+        @Override
+        public void run() {
+            try {
+                Socket socket = new Socket(TCPSingleton.getHostAddr(), 8181);
+                InputStream is = socket.getInputStream();
+                OutputStream os = socket.getOutputStream();
+                os.write(1);//1上传
+                while (true) {
+                    try {
+                        FileModel take = fileQueue.take();
+                        File file = new File(storageDir + take.getPath());
+                        if (!file.exists()) {
+                            continue;
+                        }
+                        String fileInfo = gson.toJson(take);
+                        byte[] bs = fileInfo.getBytes("utf8");
+                        byte[] head = BitConvert.convertToBytes(bs.length, 4);
+                        os.write(head);
+                        if (file.isDirectory()) {
+                            os.write(BitConvert.convertToBytes(0, 4));
+                            os.write(bs);
+                            continue;
+                        }
+                        os.write(BitConvert.convertToBytes((int) take.getLength(), 4));
+                        os.write(bs);
+                        sendFile(take, file, os);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
     private void beginBack() {
         List<String> list = dbHelper.queryAutoBakPath();
@@ -153,59 +205,43 @@ public class FileTransferService extends Service {
 
     private void scanDir(String dir) {
         File file = new File(dir);
-        final int length = storageDir.length();
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             for (File f : files) {
                 scanDir(f.getAbsolutePath());
             }
-            addToExec(file, length);
+            addToExec(file);
         } else {
-            addToExec(file, length);
+            addToExec(file);
         }
     }
 
-    private synchronized void addToExec(final File f, final int length) {
-        while (true) {
-            BlockingQueue<Runnable> queue = ((ThreadPoolExecutor) executor).getQueue();
-            if (null != queue && queue.size() == QUE_SIZE) {
-                try {
-                    wait(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                continue;
-            }
-            break;
-        }
-        final FileModel model = new FileModel();
+    ArrayBlockingQueue<FileModel> fileQueue = new ArrayBlockingQueue<>(1000);
+    boolean isfull = false;
+
+    private void addToExec(final File f) {
+
         String file = f.getAbsolutePath();
         String path = file.substring(length);
+        boolean b = dbHelper.hasUploaded(path);
+        if (b) {
+            return;
+        }
+        final FileModel model = new FileModel();
         model.setPath(path);
         model.setName(f.getName());
         model.setLastModified(f.lastModified());
         model.setLength(f.length());
         model.setDir(f.isDirectory());
-        if (!model.isDir()) {
-            broast(model, 0, ActionType.UP_LOAD, FileTransferType.WAITUPLOAD);
-        }
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                FileTransfer_in in = new FileTransfer_in();
-                in.setModel(model);
 
-                in.setBusType(ActionType.UP_LOAD);
-                if (model.isDir()) {
-                    fc.call(in, FileTransfer_out.class);
-                } else {
-                    sendFile(in, f);
-                }
-            }
-        });
+        if (!isfull) {
+            fileQueue.add(model);
+            isfull = fileQueue.size() == 1000;
+        }
+        dbHelper.addUploadFiles(model);
     }
 
-    private void sendFile(FileTransfer_in in, File f) {
+    private void sendFile(FileModel model, File f, OutputStream os) {
         try (FileInputStream fis = new FileInputStream(f)) {
             BufferedInputStream bis = new BufferedInputStream(fis);
             byte[] buf = new byte[2048];
@@ -213,27 +249,17 @@ public class FileTransferService extends Service {
             int pos = 0;
 
             String path = f.getAbsolutePath();
-            boolean b = dbHelper.hasUploaded(path);
-            if (b) {
-                broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.OVER);
-                return;
-            }
             long start = System.currentTimeMillis(), end;
             while ((len = bis.read(buf)) != -1) {
-                if (len < 2048) {
-                    buf = Arrays.copyOf(buf, len);
-                }
-                in.setBuf(buf);
-                in.setPos(pos);
+                os.write(buf, 0, len);
                 pos += len;
-                fc.call(in, FileTransfer_out.class);
                 if ((end = System.currentTimeMillis()) - start >= 1000) {//每秒发送一次
-                    broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.UPLOADING);
+                    broast(model, pos, ActionType.UP_LOAD, FileTransferType.UPLOADING);
                     start = end;
                 }
             }
             dbHelper.finishUpload(path);
-            broast(in.getModel(), pos, ActionType.UP_LOAD, FileTransferType.OVER);
+            broast(model, pos, ActionType.UP_LOAD, FileTransferType.OVER);
             bis.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();

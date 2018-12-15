@@ -19,7 +19,7 @@ import java.util.List;
 public class DbHelper extends SQLiteOpenHelper {
     final String CREATE_TABLE_SQL = "create table file(_id integer primary key autoincrement,name,length,dir,time,path)";
     final String AUTO_BAK_FILES = "create table auto_bak_file(_id integer primary key autoincrement,path)";
-    final String UPLOAD_TABLE = "create table upload_file_table(_id integer primary key autoincrement,path,length long,pos long,time long,status integer)";
+    final String UPLOAD_TABLE = "create table upload_file_table(path,isDir char,length integer,pos integer,time integer,status integer)";
 
     public DbHelper(Context context) {
         super(context, APPFinal.DB_NAME, null, 2);
@@ -89,21 +89,26 @@ public class DbHelper extends SQLiteOpenHelper {
     public void addUploadFiles(List<FileModel> list) {
         SQLiteDatabase db = getWritableDatabase();
         for (FileModel f : list) {
-            Object[] obj = new Object[]{f.getPath(), f.getLength(), 0, f.getLastModified(), 0};
-            db.execSQL("insert into upload_file_table values(null,?,?,?,?,?)", obj);
+            Object[] obj = new Object[]{f.getPath(),f.isDir(), f.getLength(), 0, f.getLastModified(), 0};
+            db.execSQL("insert into upload_file_table values(?,?,?,?,?,?)", obj);
         }
     }
 
+    public void addUploadFiles(FileModel f) {
+        SQLiteDatabase db = getWritableDatabase();
+        Object[] obj = new Object[]{f.getPath(),f.isDir(), f.getLength(), 0, f.getLastModified(), 0};
+        db.execSQL("insert into upload_file_table values(?,?,?,?,?,?)", obj);
+    }
     public List<FileTransfer> queryUploadFiles() {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("select * from upload_file_talbe where status=0", new String[]{});
+        Cursor cursor = db.rawQuery("select * from upload_file_table where status=0", new String[]{});
         List<FileTransfer> list = new ArrayList<>();
         while (cursor.moveToNext()) {
             FileTransfer model = new FileTransfer();
-            model.setName(cursor.getString(1));
-            model.setLength(cursor.getLong(2));
-            model.setPos(cursor.getLong(3));
-            model.setLastModified(cursor.getLong(4));
+            model.setName(cursor.getString(0));
+            model.setLength(cursor.getLong(1));
+            model.setPos(cursor.getLong(2));
+            model.setLastModified(cursor.getLong(3));
             list.add(model);
         }
         return list;
@@ -114,7 +119,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery("select status from upload_file_table where path=?", new String[]{path});
         try {
             if (cursor.moveToNext()) {
-                int anInt = cursor.getInt(1);
+                int anInt = cursor.getInt(0);
                 if (anInt == 1)
                     return true;
 

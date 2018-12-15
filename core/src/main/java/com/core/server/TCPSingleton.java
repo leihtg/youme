@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TCPSingleton {
     private int count;//重试次数
+    private static InetAddress hostAddr;
 
     private TCPClient tcpClient;
 
@@ -58,6 +59,11 @@ public class TCPSingleton {
         if (null != tcpClient) {
             tcpClient.connect();
         }
+        this.hostAddr = hostAddr;
+    }
+
+    public static InetAddress getHostAddr() {
+        return hostAddr;
     }
 
     /**
