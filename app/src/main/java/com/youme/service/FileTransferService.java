@@ -217,7 +217,6 @@ public class FileTransferService extends Service {
     }
 
     ArrayBlockingQueue<FileModel> fileQueue = new ArrayBlockingQueue<>(1000);
-    boolean isfull = false;
 
     private void addToExec(final File f) {
 
@@ -234,9 +233,8 @@ public class FileTransferService extends Service {
         model.setLength(f.length());
         model.setDir(f.isDirectory());
 
-        if (!isfull) {
+        if (fileQueue.size()<1000) {
             fileQueue.add(model);
-            isfull = fileQueue.size() == 1000;
         }
         dbHelper.addUploadFiles(model);
     }

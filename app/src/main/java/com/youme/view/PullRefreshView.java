@@ -21,7 +21,6 @@ import android.widget.ListView;
 import android.widget.Scroller;
 import android.widget.TextView;
 
-import com.android.internal.content.NativeLibraryHelper;
 import com.youme.R;
 import com.youme.constant.APPFinal;
 import com.youme.util.ScreenUtils;
