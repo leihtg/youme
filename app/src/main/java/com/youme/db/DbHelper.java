@@ -8,7 +8,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.anser.model.FileModel;
 import com.youme.constant.APPFinal;
 import com.youme.entity.FileTransfer;
+import com.youme.entity.FileTransferType;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -19,10 +21,10 @@ import java.util.List;
 public class DbHelper extends SQLiteOpenHelper {
     final String CREATE_TABLE_SQL = "create table file(_id integer primary key autoincrement,name,length,dir,time,path)";
     final String AUTO_BAK_FILES = "create table auto_bak_file(_id integer primary key autoincrement,path)";
-    final String UPLOAD_TABLE = "create table upload_file_table(path,isDir char,length integer,pos integer,time integer,status integer)";
+    final String UPLOAD_TABLE = "create table upload_file_table(path primary key,isDir char,length integer,pos integer,time integer,status integer)";
 
     public DbHelper(Context context) {
-        super(context, APPFinal.DB_NAME, null, 2);
+        super(context, APPFinal.DB_NAME, null, 3);
     }
 
     public List<FileModel> queryFileList(String path) {
@@ -86,48 +88,80 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void addUploadFiles(List<FileModel> list) {
+    public void addUploadFiles(List<FileTransfer> list) {
         SQLiteDatabase db = getWritableDatabase();
-        for (FileModel f : list) {
-            Object[] obj = new Object[]{f.getPath(),f.isDir(), f.getLength(), 0, f.getLastModified(), 0};
+        for (FileTransfer f : list) {
+            Object[] obj = new Object[]{f.getPath(), f.isDir(), f.getLength(), 0, f.getLastModified(), 0};
             db.execSQL("insert into upload_file_table values(?,?,?,?,?,?)", obj);
         }
     }
 
-    public void addUploadFiles(FileModel f) {
+    public void addUploadFiles(FileTransfer f) {
         SQLiteDatabase db = getWritableDatabase();
-        Object[] obj = new Object[]{f.getPath(),f.isDir(), f.getLength(), 0, f.getLastModified(), 0};
+        Object[] obj = new Object[]{f.getPath(), f.isDir(), f.getLength(), 0, f.getLastModified(), 0};
         db.execSQL("insert into upload_file_table values(?,?,?,?,?,?)", obj);
     }
-    public List<FileTransfer> queryUploadFiles() {
+
+    public List<FileTransfer> queryUploadFiles(int limit) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("select * from upload_file_table where status=0", new String[]{});
+        Cursor cursor = db.rawQuery("select * from upload_file_table where status != ? limit ?", new String[]{FileTransferType.OVER.getFlag() + "", limit + ""});
         List<FileTransfer> list = new ArrayList<>();
-        while (cursor.moveToNext()) {
-            FileTransfer model = new FileTransfer();
-            model.setName(cursor.getString(0));
-            model.setLength(cursor.getLong(1));
-            model.setPos(cursor.getLong(2));
-            model.setLastModified(cursor.getLong(3));
-            list.add(model);
-        }
-        return list;
-    }
-
-    public boolean hasUploaded(String path) {
-        SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery("select status from upload_file_table where path=?", new String[]{path});
         try {
-            if (cursor.moveToNext()) {
-                int anInt = cursor.getInt(0);
-                if (anInt == 1)
-                    return true;
-
+            while (cursor.moveToNext()) {
+                FileTransfer transfer = new FileTransfer();
+                transfer.setPath(cursor.getString(0));
+                transfer.setDir("1".equals(cursor.getString(1)));
+                transfer.setLength(cursor.getLong(2));
+                transfer.setPos(cursor.getLong(3));
+                transfer.setLastModified(cursor.getLong(4));
+                transfer.setFlags(FileTransferType.flagOf(cursor.getInt(5)));
+                list.add(transfer);
             }
         } finally {
             cursor.close();
         }
-        return false;
+        return list;
+    }
+
+    public int uploadTotal() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("select count(1) from upload_file_table where status != ? ", new String[]{FileTransferType.OVER.getFlag() + ""});
+        try {
+            if (cursor.moveToNext()) {
+                return cursor.getInt(0);
+            }
+        } finally {
+            cursor.close();
+        }
+        return 0;
+    }
+
+    public FileTransfer getFileTransfer(String path) {
+        SQLiteDatabase db = getWritableDatabase();
+        FileTransfer transfer = null;
+        Cursor cursor = db.rawQuery("select * from upload_file_table where path=?", new String[]{path});
+        try {
+            if (cursor.moveToNext()) {
+                transfer = new FileTransfer();
+                transfer.setPath(cursor.getString(0));
+                transfer.setDir("1".equals(cursor.getString(1)));
+                transfer.setLength(cursor.getLong(2));
+                transfer.setPos(cursor.getLong(3));
+                transfer.setLastModified(cursor.getLong(4));
+                transfer.setFlags(FileTransferType.flagOf(cursor.getInt(5)));
+            }
+            return transfer;
+        } finally {
+            cursor.close();
+        }
+    }
+
+    public boolean hasUploaded(String path) {
+        FileTransfer ft = getFileTransfer(path);
+        if (null == ft) {
+            return false;
+        }
+        return ft.getFlags() == FileTransferType.OVER;
     }
 
     public void finishUpload(String path) {

@@ -1,5 +1,6 @@
 package com.youme.fragment;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,7 +12,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.util.Log;
@@ -25,18 +25,19 @@ import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.ViewFlipper;
 
-import com.anser.enums.ActionType;
-import com.anser.model.FileModel;
 import com.youme.R;
 import com.youme.activity.NotifyActivity;
 import com.youme.adapter.FileTransferListAdapter;
+import com.youme.db.DbHelper;
 import com.youme.entity.FileTransfer;
 import com.youme.entity.FileTransferType;
 import com.youme.service.FileTransferService;
 import com.youme.service.MyService;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Created by Thinkpad on 2017/2/4.
@@ -53,14 +54,15 @@ public class TransferFragment extends Fragment implements GestureDetector.OnGest
     FileTransferService.FileBinder binder;
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Intent intent = new Intent(getContext(), FileTransferService.class);
         getContext().bindService(intent, new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 binder = (FileTransferService.FileBinder) service;
-                binder.registerCallback(callback);
+                binder.registerCallback(handlerUpload);
             }
 
             @Override
@@ -68,98 +70,28 @@ public class TransferFragment extends Fragment implements GestureDetector.OnGest
 
             }
         }, Context.BIND_AUTO_CREATE);
-        adapter01 = new FileTransferListAdapter(this.getContext(), uploads);
-        adapter02 = new FileTransferListAdapter(this.getContext(), downLoads);
+
+
+        adapter01 = new FileTransferListAdapter(this.getContext(), null);
+        adapter02 = new FileTransferListAdapter(this.getContext(), null);
     }
 
-    private CopyOnWriteArrayList<FileTransfer> uploads = new CopyOnWriteArrayList<>();
-    private CopyOnWriteArrayList<FileTransfer> downLoads = new CopyOnWriteArrayList<>();
 
     private FileTransferListAdapter adapter01;
     private FileTransferListAdapter adapter02;
 
+    @SuppressLint("HandlerLeak")
     private Handler handlerUpload = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            Data data = (Data) msg.obj;
-            replaceByName(uploads, data);
+            List<FileTransfer> list = (List<FileTransfer>) msg.obj;
+            list = list.subList(0, list.size());
+            adapter01.refresh(list);
             adapter01.notifyDataSetChanged();
         }
     };
 
-    private Handler handlerDownload = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            Data data = (Data) msg.obj;
-            replaceByName(downLoads, data);
-            adapter02.notifyDataSetChanged();
-        }
-    };
 
-    class Data {
-        FileModel model;
-        long pos;
-        ActionType type;
-        FileTransferType flag;
-    }
-
-    FileTransferService.FileBinderCallback callback = new FileTransferService.FileBinderCallback() {
-        @Override
-        public void status(FileModel model, long pos, ActionType type, FileTransferType flag) {
-            Data data = new Data();
-            data.model = model;
-            data.pos = pos;
-            data.type = type;
-            data.flag = flag;
-
-            Message msg = new Message();
-            msg.obj = data;
-
-            switch (type) {
-                case UP_LOAD:
-                    handlerUpload.sendMessage(msg);
-                    break;
-                case DOWN_LOAD:
-                    handlerDownload.sendMessage(msg);
-                    break;
-                default:
-                    return;
-            }
-        }
-    };
-
-    private int replaceByName(List<FileTransfer> fts, Data data) {
-        FileModel model = data.model;
-        long pos = data.pos;
-        FileTransferType flag = data.flag;
-
-        boolean over = flag == FileTransferType.OVER;
-        String name = model.getName();
-        for (int i = 0; i < fts.size(); i++) {
-            FileTransfer f = fts.get(i);
-            f.setFlags(flag);
-            if (name.equals(f.getName())) {
-                if (over) {
-                    fts.remove(i);
-                    i--;
-                    return i;
-                }
-                f.setPos(pos);
-                f.setFlags(flag);
-                return i;
-            }
-        }
-        FileTransfer ft = new FileTransfer();
-        ft.setLastModified(model.getLastModified());
-        ft.setLength(model.getLength());
-        ft.setName(model.getName());
-        ft.setFlags(flag);
-        ft.setPos(pos);
-        fts.add(ft);
-        return -1;
-    }
-
-    @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.second, null);

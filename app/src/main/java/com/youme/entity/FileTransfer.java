@@ -1,62 +1,29 @@
 package com.youme.entity;
 
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * 文件传输model
  * Created by leihtg on 2018/12/1 14:16.
  */
 public class FileTransfer {
-    private static ConcurrentHashMap<FileTransfer, String> list = new ConcurrentHashMap<>();
 
-    private String name;
+    private String path;
     private long pos;
-    private long prePos;
+    private boolean dir;
     private int perSecondLen;
     private long length;
     private long lastModified;
     private FileTransferType flags;
 
-    static Thread thread = new Thread() {
-        @Override
-        public void run() {
-            while (true) {
-                try {
-                    Thread.sleep(1000);
-                    Iterator<FileTransfer> it = list.keySet().iterator();
-                    while (it.hasNext()) {
-                        FileTransfer ft = it.next();
-                        if (ft.getFlags() == FileTransferType.OVER) {
-                            it.remove();
-                            continue;
-                        }
-                        ft.perSecondLen = (int) (ft.pos - ft.prePos);
-                        ft.prePos = ft.pos;
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    };
-
-    private static boolean isStart = false;
 
     public FileTransfer() {
-        list.put(this, "");
-        if (!isStart) {
-            isStart = true;
-            thread.start();
-        }
     }
 
-    public String getName() {
-        return name;
+    public String getPath() {
+        return path;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public long getPos() {
@@ -97,5 +64,13 @@ public class FileTransfer {
 
     public void setPerSecondLen(int perSecondLen) {
         this.perSecondLen = perSecondLen;
+    }
+
+    public boolean isDir() {
+        return dir;
+    }
+
+    public void setDir(boolean dir) {
+        this.dir = dir;
     }
 }

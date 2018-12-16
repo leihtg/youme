@@ -13,6 +13,7 @@ import com.youme.R;
 import com.youme.entity.FileTransfer;
 import com.youme.util.FileUtil;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -85,8 +86,8 @@ public class FileTransferListAdapter extends BaseAdapter {
 
         fileSize.setText(FileUtil.getSize(ft.getPos()) + "/" + FileUtil.getSize(ft.getLength()));
         createTime.setText(FileUtil.formatTime(ft.getLastModified()));
-        fileName.setText(ft.getName());
-        fileIcon.setImageResource(FileUtil.getImg(ft.getName()));
+        fileName.setText(new File(ft.getPath()).getName());
+        fileIcon.setImageResource(FileUtil.getImg(ft.getPath()));
         filestatus.setText(ft.getFlags().getName());
 
         switch (ft.getFlags()) {
@@ -94,7 +95,6 @@ public class FileTransferListAdapter extends BaseAdapter {
             case DOWNLOADING:
                 filestatus.setText(FileUtil.getSize(ft.getPerSecondLen()) + "/s");
                 break;
-
 
         }
     }
