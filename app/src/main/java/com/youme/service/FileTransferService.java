@@ -9,6 +9,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.widget.Toast;
 
+import com.anser.contant.Contant;
 import com.anser.contant.MsgType;
 import com.anser.enums.ActionType;
 import com.anser.model.FileModel;
@@ -23,14 +24,7 @@ import com.youme.db.DbHelper;
 import com.youme.entity.FileTransfer;
 import com.youme.entity.FileTransferType;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +79,7 @@ public class FileTransferService extends Service {
         in.setPos(pos);
         in.setBusType(ActionType.DOWN_LOAD);
 
-        broast(ActionType.DOWN_LOAD, FileTransferType.DOWNLOADING);
+        broast(ActionType.DOWN_LOAD, pos, 0, FileTransferType.DOWNLOADING);
 
         downFun.call(in, FileTransfer_out.class);
     }
@@ -119,7 +113,7 @@ public class FileTransferService extends Service {
                             map.remove(name);
                             File file = new File(APPFinal.appDir, name);
                             file.setLastModified(model.getLastModified());
-                            broast(ActionType.DOWN_LOAD, FileTransferType.OVER);
+                            broast(ActionType.DOWN_LOAD, pos, 0, FileTransferType.OVER);
                             Toast.makeText(getApplicationContext(), new File(APPFinal.appDir, name).getAbsolutePath() + ",下载完成", Toast.LENGTH_LONG).show();
                         } else {
                             downloadFile(model, pos);
@@ -158,45 +152,15 @@ public class FileTransferService extends Service {
         @Override
         public void run() {
             try {
-                Socket socket = new Socket(TCPSingleton.getHostAddr(), 8181);
+                Socket socket = new Socket(TCPSingleton.getHostAddr(), Contant.FILE_SOCKET_PORT);
                 InputStream is = socket.getInputStream();
                 OutputStream os = socket.getOutputStream();
                 os.write(1);//1上传
                 while (true) {
                     try {
-                        if (list == null || list.isEmpty()) {
-                            list = queryUpload();
-                        }
-                        synchronized (list) {
-                            if (list.isEmpty()) {
-                                list.wait();
-                            }
-                        }
-                        FileTransfer take = list.get(0);
-                        String path = take.getPath();
-                        File file = new File(path);
-                        if (!file.exists()) {
-                            list.remove(0);
-                            continue;
-                        }
-                        take.setPath(path.substring(dirLen));
-                        String fileInfo = gson.toJson(take);
-                        byte[] bs = fileInfo.getBytes("utf8");
-                        byte[] head = BitConvert.convertToBytes(bs.length, 4);
-                        os.write(head);
-                        if (file.isDirectory()) {
-                            os.write(BitConvert.convertToBytes(0, 4));
-                            os.write(bs);
-                            dbHelper.finishUpload(file.getAbsolutePath());
-                            list.remove(0);
-                            continue;
-                        }
-                        int length = (int) take.getLength();
-                        os.write(BitConvert.convertToBytes(length, 4));
-                        os.write(bs);
-                        sendFile(take, file, os);
-                        broast(ActionType.UP_LOAD, FileTransferType.OVER);
-                        list.remove(0);
+                        FileTransfer take = getTask();
+                        sendFile(take, os);
+                        broast(ActionType.UP_LOAD, take.getLength(), 0, FileTransferType.OVER);
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
@@ -207,6 +171,20 @@ public class FileTransferService extends Service {
             }
         }
     };
+
+    int taskIndex = 0;
+
+    private FileTransfer getTask() throws InterruptedException {
+        synchronized (list) {
+            if (list.isEmpty()) {
+                list.addAll(queryUpload());
+            }
+            if (list.isEmpty() || taskIndex - 1 > list.size()) {
+                list.wait();
+            }
+            return list.get(taskIndex++);
+        }
+    }
 
     private void beginBack() {
         List<String> list = dbHelper.queryAutoBakPath();
@@ -230,8 +208,7 @@ public class FileTransferService extends Service {
 
     private void addToExec(final File f) {
 
-        String file = f.getAbsolutePath();
-        String path = file;
+        String path = f.getAbsolutePath();
         boolean b = dbHelper.hasUploaded(path);
         if (b) {
             return;
@@ -255,16 +232,33 @@ public class FileTransferService extends Service {
         dbHelper.addUploadFiles(model);
     }
 
-    private void sendFile(FileTransfer take, File f, OutputStream os) {
-        try (FileInputStream fis = new FileInputStream(f)) {
+    private void sendFile(FileTransfer take, OutputStream os) throws IOException {
+        String path = take.getPath();
+        File file = new File(path);
+        if (!file.exists()) {
+            return;
+        }
+        take.setPath(path.substring(dirLen));
+        String fileInfo = gson.toJson(take);
+        byte[] bs = fileInfo.getBytes("utf8");
+        byte[] head = BitConvert.convertToBytes(bs.length, 4);
+        os.write(head);
+        if (file.isDirectory()) {
+            os.write(BitConvert.convertToBytes(0));
+            os.write(bs);
+            dbHelper.finishUpload(path);
+            return;
+        }
+        long length = take.getLength();
+        os.write(BitConvert.convertToBytes(length));
+        os.write(bs);
+        try (FileInputStream fis = new FileInputStream(path)) {
             BufferedInputStream bis = new BufferedInputStream(fis);
             byte[] buf = new byte[2048];
             int len = 0;
             int pos = 0;
 
-            String path = f.getAbsolutePath();
-            long start = System.currentTimeMillis(), end;
-            long prePos = 0;
+            start = System.currentTimeMillis();
             while ((len = bis.read(buf)) != -1) {
                 os.write(buf, 0, len);
                 pos += len;
@@ -273,7 +267,7 @@ public class FileTransferService extends Service {
                     take.setFlags(FileTransferType.UPLOADING);
                     take.setPerSecondLen((int) prePos);
                     take.setPos(pos);
-                    broast(ActionType.UP_LOAD, FileTransferType.UPLOADING);
+                    broast(ActionType.UP_LOAD, pos, prePos, FileTransferType.UPLOADING);
                     start = end;
                     prePos = 0;
                 }
@@ -287,13 +281,28 @@ public class FileTransferService extends Service {
         }
     }
 
-    private void broast(ActionType upLoad, FileTransferType flag) {
+    long start = 0, end;
+    long prePos = 0;
+
+    private void broast(ActionType upLoad, long pos, long prePos, FileTransferType flag) {
         if (upLoad != ActionType.UP_LOAD) {
             return;
         }
-        Message msg = new Message();
-        msg.obj = list;
-        procHandler.sendMessage(msg);
+        boolean isOver = flag == FileTransferType.OVER;
+        if (procHandler != null) {
+            Message msg = new Message();
+            msg.obj = isOver ? 1 : 0;
+            msg.arg1 = (int) pos;
+            msg.arg2 = (int) prePos;
+            procHandler.sendMessage(msg);
+        } else if (isOver) {
+            synchronized (list) {
+                while (taskIndex > 0) {
+                    list.remove(0);
+                    taskIndex--;
+                }
+            }
+        }
     }
 
     private List<FileTransfer> queryUpload() {
@@ -308,6 +317,26 @@ public class FileTransferService extends Service {
             procHandler = handler;
         }
 
-    }
+        public void refresh(int pos, int prePos, boolean isOver) {
+            synchronized (list) {
+                if (list.isEmpty()) {
+                    return;
+                }
+                int location = taskIndex - 1;
+                if (location < 0) {
+                    location = 0;
+                }
+                FileTransfer ft = list.get(location);
+                ft.setPos(pos);
+                ft.setPerSecondLen(prePos);
+                if (isOver) {
+                    ft.setFlags(FileTransferType.OVER);
+                }
+            }
+        }
 
+        public List<FileTransfer> getList() {
+            return list;
+        }
+    }
 }

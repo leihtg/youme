@@ -97,9 +97,13 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void addUploadFiles(FileTransfer f) {
+        if (null != getFileTransfer(f.getPath())) {
+            return;
+        }
         SQLiteDatabase db = getWritableDatabase();
         Object[] obj = new Object[]{f.getPath(), f.isDir(), f.getLength(), 0, f.getLastModified(), 0};
-        db.execSQL("insert into upload_file_table values(?,?,?,?,?,?)", obj);
+        String sql="insert into upload_file_table values(?,?,?,?,?,?)";
+        db.execSQL(sql, obj);
     }
 
     public List<FileTransfer> queryUploadFiles(int limit) {
