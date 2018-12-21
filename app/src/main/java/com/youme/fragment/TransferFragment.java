@@ -85,9 +85,15 @@ public class TransferFragment extends Fragment implements GestureDetector.OnGest
     private Handler handlerUpload = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            boolean isOver = (int) msg.obj == 1;
-            binder.refresh(msg.arg1, msg.arg2, isOver);
-            adapter01.refresh(binder.getList());
+            switch (msg.what) {
+                case 1:
+                    binder.reloadData();
+                    break;
+                default:
+                    boolean isOver = (int) msg.obj == 1;
+                    binder.refresh(msg.arg1, msg.arg2, isOver);
+                    adapter01.refresh(binder.getList());
+            }
         }
     };
 

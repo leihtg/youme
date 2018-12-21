@@ -177,9 +177,13 @@ public class FileTransferService extends Service {
     private FileTransfer getTask() throws InterruptedException {
         synchronized (list) {
             if (list.isEmpty()) {
-                list.addAll(queryUpload());
+                if (null != procHandler) {
+                    procHandler.sendEmptyMessage(1);
+                } else {
+                    list.addAll(queryUpload());
+                }
             }
-            if (list.isEmpty() || taskIndex - 1 > list.size()) {
+            if (list.isEmpty() || taskIndex > list.size()) {
                 list.wait();
             }
             return list.get(taskIndex++);
@@ -264,9 +268,6 @@ public class FileTransferService extends Service {
                 pos += len;
                 prePos += len;
                 if ((end = System.currentTimeMillis()) - start >= 1000) {//每秒发送一次
-                    take.setFlags(FileTransferType.UPLOADING);
-                    take.setPerSecondLen((int) prePos);
-                    take.setPos(pos);
                     broast(ActionType.UP_LOAD, pos, prePos, FileTransferType.UPLOADING);
                     start = end;
                     prePos = 0;
@@ -322,6 +323,10 @@ public class FileTransferService extends Service {
                 if (list.isEmpty()) {
                     return;
                 }
+                while (taskIndex > 1) {
+                    list.remove(0);
+                    taskIndex--;
+                }
                 int location = taskIndex - 1;
                 if (location < 0) {
                     location = 0;
@@ -332,6 +337,13 @@ public class FileTransferService extends Service {
                 if (isOver) {
                     ft.setFlags(FileTransferType.OVER);
                 }
+            }
+        }
+
+        public void reloadData() {
+            synchronized (list) {
+                list.addAll(queryUpload());
+                list.notify();
             }
         }
 
