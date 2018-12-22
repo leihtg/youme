@@ -9,7 +9,7 @@ public class FileTransfer {
     private String path;
     private long pos;
     private boolean dir;
-    private int perSecondLen;
+    private long perSecondLen;
     private long length;
     private long lastModified;
     private FileTransferType flags;
@@ -58,11 +58,11 @@ public class FileTransfer {
         this.flags = flags;
     }
 
-    public int getPerSecondLen() {
+    public long getPerSecondLen() {
         return perSecondLen;
     }
 
-    public void setPerSecondLen(int perSecondLen) {
+    public void setPerSecondLen(long perSecondLen) {
         this.perSecondLen = perSecondLen;
     }
 

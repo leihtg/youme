@@ -26,8 +26,8 @@ import com.youme.entity.FileTransferType;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -47,7 +47,7 @@ public class FileTransferService extends Service {
 
     FunCall<FileTransfer_in, FileTransfer_out> downFun = new FunCall<>();
 
-    List<FileTransfer> list = new ArrayList<>(1000);
+    ArrayBlockingQueue<FileTransfer> list = new ArrayBlockingQueue<>(1000);
 
     @Override
     public void onCreate() {
@@ -79,7 +79,7 @@ public class FileTransferService extends Service {
         in.setPos(pos);
         in.setBusType(ActionType.DOWN_LOAD);
 
-        broast(ActionType.DOWN_LOAD, pos, 0, FileTransferType.DOWNLOADING);
+//        broastUpload(ActionType.DOWN_LOAD, pos, 0, FileTransferType.DOWNLOADING);
 
         downFun.call(in, FileTransfer_out.class);
     }
@@ -113,7 +113,7 @@ public class FileTransferService extends Service {
                             map.remove(name);
                             File file = new File(APPFinal.appDir, name);
                             file.setLastModified(model.getLastModified());
-                            broast(ActionType.DOWN_LOAD, pos, 0, FileTransferType.OVER);
+//                            broastUpload(ActionType.DOWN_LOAD, pos, 0, FileTransferType.OVER);
                             Toast.makeText(getApplicationContext(), new File(APPFinal.appDir, name).getAbsolutePath() + ",下载完成", Toast.LENGTH_LONG).show();
                         } else {
                             downloadFile(model, pos);
@@ -160,7 +160,6 @@ public class FileTransferService extends Service {
                     try {
                         FileTransfer take = getTask();
                         sendFile(take, os);
-                        broast(ActionType.UP_LOAD, take.getLength(), 0, FileTransferType.OVER);
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
@@ -172,21 +171,12 @@ public class FileTransferService extends Service {
         }
     };
 
-    int taskIndex = 0;
-
     private FileTransfer getTask() throws InterruptedException {
         synchronized (list) {
             if (list.isEmpty()) {
-                if (null != procHandler) {
-                    procHandler.sendEmptyMessage(1);
-                } else {
-                    list.addAll(queryUpload());
-                }
+                list.addAll(queryUpload());
             }
-            if (list.isEmpty() || taskIndex > list.size()) {
-                list.wait();
-            }
-            return list.get(taskIndex++);
+            return list.take();
         }
     }
 
@@ -213,7 +203,7 @@ public class FileTransferService extends Service {
     private void addToExec(final File f) {
 
         String path = f.getAbsolutePath();
-        boolean b = dbHelper.hasUploaded(path);
+        boolean b = dbHelper.hasRecordUploaded(path);
         if (b) {
             return;
         }
@@ -225,14 +215,6 @@ public class FileTransferService extends Service {
         model.setPos(0);
         model.setFlags(FileTransferType.WAITUPLOAD);
 
-        if (list.size() < 1000) {
-            list.add(model);
-            if (list.size() == 1) {
-                synchronized (list) {
-                    list.notify();
-                }
-            }
-        }
         dbHelper.addUploadFiles(model);
     }
 
@@ -268,13 +250,19 @@ public class FileTransferService extends Service {
                 pos += len;
                 prePos += len;
                 if ((end = System.currentTimeMillis()) - start >= 1000) {//每秒发送一次
-                    broast(ActionType.UP_LOAD, pos, prePos, FileTransferType.UPLOADING);
+                    take.setFlags(FileTransferType.UPLOADING);
+                    take.setPos(pos);
+                    take.setPerSecondLen(prePos);
+                    broastUpload(take);
                     start = end;
                     prePos = 0;
                 }
             }
             dbHelper.finishUpload(path);
             bis.close();
+            take.setPos(take.getLength());
+            take.setFlags(FileTransferType.OVER);
+            broastUpload(take);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -285,24 +273,11 @@ public class FileTransferService extends Service {
     long start = 0, end;
     long prePos = 0;
 
-    private void broast(ActionType upLoad, long pos, long prePos, FileTransferType flag) {
-        if (upLoad != ActionType.UP_LOAD) {
-            return;
-        }
-        boolean isOver = flag == FileTransferType.OVER;
+    private void broastUpload(FileTransfer ft) {
         if (procHandler != null) {
             Message msg = new Message();
-            msg.obj = isOver ? 1 : 0;
-            msg.arg1 = (int) pos;
-            msg.arg2 = (int) prePos;
+            msg.obj = ft;
             procHandler.sendMessage(msg);
-        } else if (isOver) {
-            synchronized (list) {
-                while (taskIndex > 0) {
-                    list.remove(0);
-                    taskIndex--;
-                }
-            }
         }
     }
 
@@ -316,39 +291,6 @@ public class FileTransferService extends Service {
     public class FileBinder extends Binder {
         public void registerCallback(Handler handler) {
             procHandler = handler;
-        }
-
-        public void refresh(int pos, int prePos, boolean isOver) {
-            synchronized (list) {
-                if (list.isEmpty()) {
-                    return;
-                }
-                while (taskIndex > 1) {
-                    list.remove(0);
-                    taskIndex--;
-                }
-                int location = taskIndex - 1;
-                if (location < 0) {
-                    location = 0;
-                }
-                FileTransfer ft = list.get(location);
-                ft.setPos(pos);
-                ft.setPerSecondLen(prePos);
-                if (isOver) {
-                    ft.setFlags(FileTransferType.OVER);
-                }
-            }
-        }
-
-        public void reloadData() {
-            synchronized (list) {
-                list.addAll(queryUpload());
-                list.notify();
-            }
-        }
-
-        public List<FileTransfer> getList() {
-            return list;
         }
     }
 }

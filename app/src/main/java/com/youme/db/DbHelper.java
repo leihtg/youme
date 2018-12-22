@@ -97,9 +97,6 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void addUploadFiles(FileTransfer f) {
-        if (null != getFileTransfer(f.getPath())) {
-            return;
-        }
         SQLiteDatabase db = getWritableDatabase();
         Object[] obj = new Object[]{f.getPath(), f.isDir(), f.getLength(), 0, f.getLastModified(), 0};
         String sql="insert into upload_file_table values(?,?,?,?,?,?)";
@@ -160,17 +157,22 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     }
 
-    public boolean hasUploaded(String path) {
+    /**
+     * 是否有记录
+     * @param path
+     * @return
+     */
+    public boolean hasRecordUploaded(String path) {
         FileTransfer ft = getFileTransfer(path);
         if (null == ft) {
             return false;
         }
-        return ft.getFlags() == FileTransferType.OVER;
+        return true;
     }
 
     public void finishUpload(String path) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("update upload_file_table set status=1 where path=?", new Object[]{path});
+        db.execSQL("update upload_file_table set status=? where path=?", new Object[]{FileTransferType.OVER.getFlag(),path});
     }
 
     @Override

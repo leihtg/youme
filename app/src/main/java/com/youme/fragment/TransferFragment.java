@@ -63,7 +63,6 @@ public class TransferFragment extends Fragment implements GestureDetector.OnGest
             public void onServiceConnected(ComponentName name, IBinder service) {
                 binder = (FileTransferService.FileBinder) service;
                 binder.registerCallback(handlerUpload);
-                list1 = binder.getList();
             }
 
             @Override
@@ -72,11 +71,11 @@ public class TransferFragment extends Fragment implements GestureDetector.OnGest
             }
         }, Context.BIND_AUTO_CREATE);
 
-        adapter01 = new FileTransferListAdapter(this.getContext(), list1);
+        adapter01 = new FileTransferListAdapter(this.getContext(), null);
         adapter02 = new FileTransferListAdapter(this.getContext(), null);
     }
 
-    private List<FileTransfer> list1;
+    private List<FileTransfer> list1 = new ArrayList<>();
 
     private FileTransferListAdapter adapter01;
     private FileTransferListAdapter adapter02;
@@ -87,12 +86,11 @@ public class TransferFragment extends Fragment implements GestureDetector.OnGest
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case 1:
-                    binder.reloadData();
                     break;
                 default:
-                    boolean isOver = (int) msg.obj == 1;
-                    binder.refresh(msg.arg1, msg.arg2, isOver);
-                    adapter01.refresh(binder.getList());
+                    list1.clear();
+                    list1.add((FileTransfer) msg.obj);
+                    adapter01.refresh(list1);
             }
         }
     };
