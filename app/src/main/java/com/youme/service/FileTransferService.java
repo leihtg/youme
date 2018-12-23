@@ -181,9 +181,12 @@ public class FileTransferService extends Service {
     }
 
     private void beginBack() {
-        List<String> list = dbHelper.queryAutoBakPath();
-        for (String dir : list) {
+        List<String> listDir = dbHelper.queryAutoBakPath();
+        for (String dir : listDir) {
             scanDir(dir);
+        }
+        if (list.isEmpty()) {
+            list.addAll(queryUpload());
         }
     }
 
