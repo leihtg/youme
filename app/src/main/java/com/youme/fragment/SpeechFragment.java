@@ -1,6 +1,7 @@
 package com.youme.fragment;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -20,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.youme.R;
+import io.agora.openlive.ui.AgoraMainActivity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -120,6 +122,13 @@ public class SpeechFragment extends Fragment {
                         }
                         break;
                     case R.id.sbutton:
+                        Intent intent = new Intent();
+                        intent.setClass(SpeechFragment.this.getContext(), AgoraMainActivity.class);
+                        startActivity(intent);
+                        if (null != intent) {
+                            return;
+                        }
+
                         //将EditText里的内容保存为语音文件
                         File sdCardDir = Environment.getExternalStorageDirectory();
                         File savePath = new File(sdCardDir, "speech");
